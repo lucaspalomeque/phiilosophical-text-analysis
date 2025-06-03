@@ -1,92 +1,169 @@
-# Philosophical Text Analysis
+# 🏛️ Philosophical Text Analysis
 
-Herramienta de análisis computacional de textos filosóficos utilizando técnicas de procesamiento de lenguaje natural (NLP).
+**Automated analysis of philosophical texts using psycholinguistic techniques**
 
-## 🎯 Objetivo
-Analizar y extraer patrones, temas y estructuras argumentativas de textos filosóficos clásicos y contemporáneos.
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🚀 Características
-- Análisis de sentimientos en textos filosóficos
-- Extracción de conceptos clave y términos técnicos
-- Visualización de redes conceptuales
-- Comparación entre diferentes autores/corrientes
-- Generación de resúmenes automáticos
+> 🔬 Applying machine learning techniques from psycholinguistic research to analyze patterns in philosophical thinking across different schools of thought.
 
-## 🛠️ Tecnologías
-- Python 3.x
-- NLTK / spaCy
-- Pandas, NumPy
-- Matplotlib, Seaborn
-- Scikit-learn
+## 🎯 What This Does
 
-## 📦 Instalación
+This project uses **Latent Semantic Analysis (LSA)** and other techniques from the research paper ["Automated analysis of free speech predicts psychosis onset"](https://www.nature.com/articles/npjschz201530) to analyze philosophical texts and discover patterns in different thinking styles.
+
+### 🔍 Key Findings So Far
+
+**Surprising Results from Initial Analysis:**
+- **Nietzsche** (Beyond Good & Evil): **0.667 coherence** 🥇
+- **Kant** (Critique of Pure Reason): **0.581 coherence** 🥈  
+- **Hume** (Human Understanding): **0.570 coherence** 🥉
+
+*This challenges assumptions about "systematic" vs "fragmentary" philosophical styles!*
+
+## 🚀 Quick Start
+
 ```bash
-git clone https://github.com/lucaspalomeque/phiilosophical-text-analysis.git
-cd phiilosophical-text-analysis
-python -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
-pip install -r requirements.txt
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/philosophical-text-analysis.git
+cd philosophical-text-analysis
+
+# Set up environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install the package
+pip install -e .
+
+# Test it works
+philo-analyze test
 ```
 
-## 💻 Uso
-```python
-python main.py --input "textos/platon.txt" --analysis sentiment
-```
+## 💡 What You Can Do
 
-## 📁 Estructura del Proyecto
-```
-├── data/
-│   ├── raw/          # Textos originales
-│   └── processed/    # Datos procesados
-├── src/              # Código fuente
-├── notebooks/        # Jupyter notebooks
-├── reports/          # Resultados y visualizaciones
-└── requirements.txt
-```
-
-## 📊 Ejemplos de Análisis
-- **Análisis de frecuencia de términos**: Identificación de conceptos más utilizados por autor
-- **Análisis de sentimientos**: Evaluación del tono emocional en diferentes corrientes filosóficas
-- **Redes semánticas**: Visualización de relaciones entre conceptos filosóficos
-- **Comparación textual**: Similitudes y diferencias entre textos de diferentes períodos
-
-## 🔧 Desarrollo
-Para contribuir al desarrollo:
+### **Analyze Individual Texts**
 ```bash
-# Instalar dependencias de desarrollo
-pip install -r requirements-dev.txt
-
-# Ejecutar tests
-python -m pytest tests/
-
-# Verificar estilo de código
-flake8 src/
+philo-analyze analyze --text your_text.txt --author "Philosopher Name" --verbose
 ```
 
-## 🤝 Contribuir
-Las contribuciones son bienvenidas. Por favor:
-1. Fork el repositorio
-2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit tus cambios (`git commit -am 'Agrega nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Abre un Pull Request
+### **Batch Analysis**
+```bash
+philo-analyze batch --input-dir texts/ --output results.csv --verbose
+```
 
-## 🚧 Próximos Pasos
-- [ ] Implementar análisis de frecuencia de términos filosóficos
-- [ ] Desarrollar visualizaciones interactivas con Plotly
-- [ ] Agregar soporte para textos en múltiples idiomas
-- [ ] Crear sistema de clasificación automática por corrientes filosóficas
-- [ ] Implementar análisis de argumentación y estructura lógica
-- [ ] Desarrollar comparador de estilos argumentativos entre autores
-- [ ] Agregar extracción automática de citas y referencias
-- [ ] Crear dashboard web interactivo
-- [ ] Implementar análisis temporal de evolución conceptual
-- [ ] Documentar casos de uso con textos específicos
+### **Download Philosophical Texts**
+```bash
+python scripts/download_philosophical_texts.py --sample
+```
 
-## 📄 Licencia
-MIT License
+### **Compare Philosophers**
+```bash
+python scripts/compare_philosophers.py --input-dir data/raw --visualize
+```
 
-## 📞 Contacto
-Lucas Palomeque - [@lucaspalomeque](https://github.com/lucaspalomeque)
+## 🧠 How It Works
 
-Enlace del proyecto: [https://github.com/lucaspalomeque/phiilosophical-text-analysis](https://github.com/lucaspalomeque/phiilosophical-text-analysis)
+1. **Text Preprocessing**: Tokenization, lemmatization, filtering using NLTK
+2. **Semantic Analysis**: LSA (TF-IDF + SVD) to create semantic vectors
+3. **Coherence Measurement**: Cosine similarity between consecutive sentences
+4. **Classification**: Identify patterns that distinguish thinking styles
+
+## 📊 Sample Results
+
+### Semantic Coherence by Philosopher
+```
+Philosopher    | Coherence | Style
+---------------|-----------|------------------
+Nietzsche      | 0.667     | Surprisingly systematic
+Kant           | 0.581     | Complex but coherent  
+Hume           | 0.570     | Empirically structured
+```
+
+## 🗺️ Development Roadmap
+
+- ✅ **Phase 0**: Basic LSA implementation and CLI
+- 🎯 **Phase 1**: Complete replication of research paper
+- 🎨 **Phase 2**: Advanced visualizations and reporting
+- 🧠 **Phase 3**: Philosophy-specific metrics and insights
+- 🚀 **Phase 4**: Web platform and advanced ML
+
+*See [ROADMAP.md](ROADMAP.md) for detailed development plan*
+
+## 🔮 Próximos Pasos
+
+- [ ] **Implementar análisis de frecuencia de términos filosóficos**
+- [ ] **Desarrollar visualizaciones interactivas con Plotly**
+- [ ] **Agregar soporte para textos en múltiples idiomas**
+- [ ] **Crear sistema de clasificación automática por corrientes filosóficas**
+- [ ] **Implementar análisis de argumentación y estructura lógica**
+- [ ] **Desarrollar comparador de estilos argumentativos entre autores**
+- [ ] **Agregar extracción automática de citas y referencias**
+- [ ] **Crear dashboard web interactivo**
+- [ ] **Implementar análisis temporal de evolución conceptual**
+- [ ] **Documentar casos de uso con textos específicos**
+
+## 🔬 Scientific Approach
+
+Based on:
+- **Paper**: ["Automated analysis of free speech predicts psychosis onset in high-risk youths"](https://www.nature.com/articles/npjschz201530) (Bedi et al., 2015)
+- **Method**: LSA-based semantic coherence analysis
+- **Validation**: Statistical hypothesis testing across philosophical schools
+- **Innovation**: Application to philosophical discourse analysis
+
+## 📁 Project Structure
+
+```
+philosophical-text-analysis/
+├── src/philosophical_analysis/    # Core package
+│   ├── core/                     # Analysis algorithms
+│   ├── data/                     # Data processing
+│   └── visualization/            # Plotting and reports
+├── scripts/                      # Utility scripts
+├── tests/                        # Test suite
+├── data/                         # Philosophical texts
+└── reports/                      # Generated analyses
+```
+
+## 🤝 Contributing
+
+This is a research project exploring the intersection of **computational linguistics** and **philosophy**. Contributions welcome!
+
+### Ideas for Contributions:
+- 📚 Add more philosophical texts
+- 🔬 Implement additional metrics from the paper
+- 🎨 Create new visualizations
+- 🧪 Test hypotheses about philosophical schools
+- 📖 Improve documentation
+
+### Getting Started:
+1. Fork the repository
+2. Create a feature branch
+3. Run tests: `pytest`
+4. Submit a pull request
+
+## 📈 Recent Updates
+
+- **[Date]**: Initial release with Kant, Hume, Nietzsche analysis
+- **[Date]**: CLI implementation with batch processing
+- **[Date]**: Automated text downloading from Project Gutenberg
+- **[Date]**: School-based hypothesis testing framework
+
+## 🎓 Academic Context
+
+This project demonstrates:
+- **Computational text analysis** applied to philosophy
+- **Interdisciplinary research** combining CS and humanities
+- **Reproducible research** with open source tools
+- **Novel insights** about philosophical thinking patterns
+
+## 📧 Contact
+
+Feel free to reach out if you're interested in:
+- **Collaborative research** on computational philosophy
+- **Extensions** to other domains (literature, psychology, etc.)
+- **Academic applications** of these techniques
+
+---
+
+⭐ **Star this repo if you find it interesting!** ⭐
+
+*"The unexamined text is not worth reading"* - Socrates (probably)
