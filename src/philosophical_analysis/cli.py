@@ -45,11 +45,17 @@ def cli(ctx, verbose):
     '--author', '-a',
     help='Author name for the text'
 )
+@click.option(
+    '--verbose', '-v',
+    is_flag=True,
+    help='Enable verbose output for this command'
+)
 @click.pass_context
-def analyze(ctx, text, output, author):
+def analyze(ctx, text, output, author, verbose):
     """Analyze a single philosophical text."""
     
-    verbose = ctx.obj.get('verbose', False)
+    # Use command-level verbose or global verbose
+    verbose = verbose or ctx.obj.get('verbose', False)
     
     try:
         if verbose:
@@ -150,11 +156,17 @@ def analyze(ctx, text, output, author):
     default='*.txt',
     help='File pattern to match (default: *.txt)'
 )
+@click.option(
+    '--verbose', '-v',
+    is_flag=True,
+    help='Enable verbose output for this command'
+)
 @click.pass_context
-def batch(ctx, input_dir, output, pattern):
+def batch(ctx, input_dir, output, pattern, verbose):
     """Analyze multiple texts in a directory."""
     
-    verbose = ctx.obj.get('verbose', False)
+    # Use command-level verbose or global verbose
+    verbose = verbose or ctx.obj.get('verbose', False)
     
     try:
         input_path = Path(input_dir)
@@ -202,8 +214,13 @@ def batch(ctx, input_dir, output, pattern):
         click.echo(f"💾 Results saved to: {output_path}")
         
         # Show summary
-        successful = len(results[results['error'].isna()])
-        failed = len(results) - successful
+        if 'error' in results.columns:
+            successful = len(results[results['error'].isna()])
+            failed = len(results) - successful
+        else:
+            # If no error column exists, all analyses were successful
+            successful = len(results)
+            failed = 0
         
         click.echo(f"\n📈 Summary:")
         click.echo(f"  Total texts: {len(results)}")
@@ -211,9 +228,15 @@ def batch(ctx, input_dir, output, pattern):
         if failed > 0:
             click.echo(f"  Failed: {failed}")
         
-        if successful > 0:
+        if successful > 0 and 'semantic_coherence' in results.columns:
             avg_coherence = results['semantic_coherence'].mean()
             click.echo(f"  Avg Coherence: {avg_coherence:.3f}")
+            
+            # Show individual results if verbose
+            if verbose:
+                click.echo(f"\n📊 Individual Results:")
+                for _, row in results.iterrows():
+                    click.echo(f"  {row['text_id']}: {row['semantic_coherence']:.3f} ({row['classification']})")
         
     except Exception as e:
         click.echo(f"❌ Error: {e}", err=True)
@@ -224,10 +247,22 @@ def batch(ctx, input_dir, output, pattern):
 
 
 @cli.command()
-def test():
+@click.option(
+    '--verbose', '-v',
+    is_flag=True,
+    help='Enable verbose output for test'
+)
+@click.pass_context
+def test(ctx, verbose):
     """Run a quick test of the analyzer."""
     
-    click.echo("🧪 Running analyzer test...")
+    # Use command-level verbose or global verbose
+    verbose = verbose or ctx.obj.get('verbose', False)
+    
+    if verbose:
+        click.echo("🧪 Running analyzer test in verbose mode...")
+    else:
+        click.echo("🧪 Running analyzer test...")
     
     try:
         # Sample texts for testing
