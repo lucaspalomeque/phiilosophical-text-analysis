@@ -1,0 +1,4 @@
+text_id,sentence_count,word_count,max_sentence_length,avg_sentence_length,semantic_coherence,min_coherence,max_coherence,classification,analysis_mode
+nietzsche_beyond_good_evil,1193,31185,275,26.14,0.6668516950079624,-0.24317960580407205,0.9998903892357731,coherent,lsa
+hume_human_understanding,1571,26127,123,16.63,0.5704364928647582,-0.17402187086079138,1.0,coherent,lsa
+kant_critique_pure_reason,5624,94695,94,16.84,0.5809224826733124,-0.24700490983885703,1.0,coherent,lsa
