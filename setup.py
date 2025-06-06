@@ -142,3 +142,13 @@ setup(
     license="MIT",
     platforms=["any"],
 )
+
+# Visualization dependencies
+packages=find_packages(where="src"),
+package_data={
+    "philosophical_analysis": [
+        "config/*.yaml",
+        "visualization/templates/*.html",
+        "visualization/config/*.py",
+    ],
+},

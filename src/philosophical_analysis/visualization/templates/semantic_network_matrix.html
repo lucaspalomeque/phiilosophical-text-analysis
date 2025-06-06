@@ -470,17 +470,67 @@
 
     <script>
         // Semantic network data based on philosophical analysis
-        // Generated semantic network data
-        // Generated semantic network data
         const networkData = {
-        "nodes": [],
-        "links": [],
-        "metadata": {
-                "total_concepts": 0,
-                "total_relationships": 0,
-                "density": 0
-        }
-};
+            nodes: [
+                // Central concepts
+                {id: "reality", label: "REALITY", category: "metaphysics", philosopher: "all", importance: 0.95},
+                {id: "knowledge", label: "KNOWLEDGE", category: "epistemology", philosopher: "all", importance: 0.92},
+                {id: "truth", label: "TRUTH", category: "epistemology", philosopher: "all", importance: 0.88},
+                {id: "existence", label: "EXISTENCE", category: "metaphysics", philosopher: "all", importance: 0.85},
+                {id: "reason", label: "REASON", category: "logic", philosopher: "kant", importance: 0.83},
+                {id: "experience", label: "EXPERIENCE", category: "epistemology", philosopher: "hume", importance: 0.81},
+                {id: "morality", label: "MORALITY", category: "ethics", philosopher: "kant", importance: 0.79},
+                {id: "power", label: "POWER", category: "ethics", philosopher: "nietzsche", importance: 0.77},
+                
+                // Secondary concepts
+                {id: "categories", label: "CATEGORIES", category: "logic", philosopher: "kant", importance: 0.65},
+                {id: "intuition", label: "INTUITION", category: "epistemology", philosopher: "kant", importance: 0.63},
+                {id: "causation", label: "CAUSATION", category: "metaphysics", philosopher: "hume", importance: 0.61},
+                {id: "skepticism", label: "SKEPTICISM", category: "epistemology", philosopher: "hume", importance: 0.59},
+                {id: "values", label: "VALUES", category: "ethics", philosopher: "nietzsche", importance: 0.57},
+                {id: "will", label: "WILL", category: "ethics", philosopher: "nietzsche", importance: 0.55},
+                {id: "duty", label: "DUTY", category: "ethics", philosopher: "kant", importance: 0.53},
+                {id: "habit", label: "HABIT", category: "epistemology", philosopher: "hume", importance: 0.51},
+                
+                // Peripheral concepts
+                {id: "freedom", label: "FREEDOM", category: "ethics", philosopher: "all", importance: 0.49},
+                {id: "nature", label: "NATURE", category: "metaphysics", philosopher: "all", importance: 0.47},
+                {id: "mind", label: "MIND", category: "metaphysics", philosopher: "all", importance: 0.45},
+                {id: "consciousness", label: "CONSCIOUSNESS", category: "metaphysics", philosopher: "all", importance: 0.43},
+                {id: "judgment", label: "JUDGMENT", category: "logic", philosopher: "kant", importance: 0.41},
+                {id: "passion", label: "PASSION", category: "ethics", philosopher: "hume", importance: 0.39},
+                {id: "superman", label: "ÜBERMENSCH", category: "ethics", philosopher: "nietzsche", importance: 0.37},
+                {id: "necessity", label: "NECESSITY", category: "logic", philosopher: "all", importance: 0.35}
+            ],
+            
+            links: [
+                // Strong connections
+                {source: "reality", target: "existence", strength: 0.89},
+                {source: "knowledge", target: "truth", strength: 0.85},
+                {source: "knowledge", target: "experience", strength: 0.78},
+                {source: "reason", target: "categories", strength: 0.76},
+                {source: "morality", target: "duty", strength: 0.74},
+                {source: "power", target: "values", strength: 0.72},
+                {source: "experience", target: "causation", strength: 0.70},
+                {source: "skepticism", target: "knowledge", strength: 0.68},
+                
+                // Medium connections
+                {source: "intuition", target: "knowledge", strength: 0.55},
+                {source: "will", target: "power", strength: 0.53},
+                {source: "habit", target: "experience", strength: 0.51},
+                {source: "freedom", target: "morality", strength: 0.49},
+                {source: "nature", target: "reality", strength: 0.47},
+                {source: "mind", target: "consciousness", strength: 0.45},
+                {source: "judgment", target: "reason", strength: 0.43},
+                {source: "passion", target: "morality", strength: 0.41},
+                
+                // Weak connections
+                {source: "superman", target: "values", strength: 0.35},
+                {source: "necessity", target: "reason", strength: 0.33},
+                {source: "truth", target: "reality", strength: 0.31},
+                {source: "existence", target: "consciousness", strength: 0.29}
+            ]
+        };
 
         let simulation, svg, nodeGroup, linkGroup;
         let currentThreshold = 0.3;

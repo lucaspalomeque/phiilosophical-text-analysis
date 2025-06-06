@@ -36,3 +36,4 @@ click>=8.0.0
 # isort>=5.10.0
 # flake8>=4.0.0
 # mypy>=0.910
+networkx>=2.6.0

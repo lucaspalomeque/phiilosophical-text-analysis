@@ -461,6 +461,14 @@ def info():
     click.echo("  philo-analyze batch --input-dir texts/ --output results.csv --advanced --cross-validate --labels-file labels.csv")
 
 
+# Import visualization commands
+try:
+    from .cli_extensions import add_visualization_commands
+    cli = add_visualization_commands(cli)
+except ImportError:
+    # Visualization module not available
+    pass
+
 def main():
     """Entry point for the CLI."""
     cli()

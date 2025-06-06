@@ -1,0 +1,49 @@
+{
+  "philosophers": {
+    "NIETZSCHE": {
+      "first_order_coherence": 0.6668516950079624,
+      "second_order_coherence": 0.95,
+      "determiner_frequency": 0.01,
+      "max_phrase_length": 100,
+      "avg_sentence_length": 26.14,
+      "syntactic_complexity": 0.5285333333333334,
+      "temporal_coherence": 0.7,
+      "coherence_decay_rate": 0.1,
+      "color": "#00FF00"
+    },
+    "HUME": {
+      "first_order_coherence": 0.5704364928647582,
+      "second_order_coherence": 0.95,
+      "determiner_frequency": 0.01,
+      "max_phrase_length": 100,
+      "avg_sentence_length": 16.63,
+      "syntactic_complexity": 0.4017333333333334,
+      "temporal_coherence": 0.7,
+      "coherence_decay_rate": 0.1,
+      "color": "#888888"
+    },
+    "KANT": {
+      "first_order_coherence": 0.5809224826733124,
+      "second_order_coherence": 0.95,
+      "determiner_frequency": 0.01,
+      "max_phrase_length": 100,
+      "avg_sentence_length": 16.84,
+      "syntactic_complexity": 0.4045333333333334,
+      "temporal_coherence": 0.7,
+      "coherence_decay_rate": 0.1,
+      "color": "#FFFFFF"
+    }
+  },
+  "stats": {
+    "highest_coherence": "NIETZSCHE",
+    "highest_coherence_value": 0.6668516950079624,
+    "most_complex_syntax": "NIETZSCHE",
+    "most_complex_value": 0.5285333333333334,
+    "highest_determiner_use": "NIETZSCHE",
+    "highest_determiner_value": 0.01,
+    "most_stable": "NIETZSCHE",
+    "most_stable_value": 1.0,
+    "highest_second_order": 0.95
+  },
+  "timestamp": "2025-06-06T17:59:56.052628"
+}
