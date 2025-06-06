@@ -9,6 +9,8 @@ import sys
 import json
 from pathlib import Path
 from typing import Optional
+import pandas as pd  # ← ESTA ES LA LÍNEA QUE FALTABA
+
 
 from .core.analyzer import PhilosophicalAnalyzer  # Your original analyzer
 from . import __version__
@@ -331,7 +333,8 @@ def batch(ctx, input_dir, output, pattern, advanced, cross_validate, labels_file
         click.echo(f"💾 Results saved to: {output_path}")
         
         # Show summary
-        successful = len(results[~results.get('error', pd.Series([False]*len(results))).notna()])
+        successful = len(results) if 'error' not in results.columns else len(results[results['error'].isna()])
+
         failed = len(results) - successful
         
         click.echo(f"\n📈 Summary:")
