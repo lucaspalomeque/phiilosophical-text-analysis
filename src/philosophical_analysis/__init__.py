@@ -6,8 +6,8 @@ based on the paper "Automated analysis of free speech predicts psychosis onset i
 """
 
 __version__ = "0.1.0"
-__author__ = "Your Name"  # TODO: Change this
-__email__ = "your.email@example.com"  # TODO: Change this
+__author__ = "Zeche"  
+__email__ = "lucas@electricsheeps.co"  
 __license__ = "MIT"
 __copyright__ = "Copyright 2024, Philosophical Text Analysis Project"
 
