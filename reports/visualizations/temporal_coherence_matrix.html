@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temporal Coherence Analysis - Matrix Interface</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+    <style>
+        body {
+            font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+            margin: 0;
+            padding: 20px;
+            background-color: #000000;
+            min-height: 100vh;
+            color: #00FF00;
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(0,255,0,0.15) 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: #000000;
+            border: 2px solid #00FF00;
+            border-radius: 0;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            color: #FFFFFF;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+        }
+        
+        .subtitle {
+            text-align: center;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            color: #FFFFFF;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .control-panel {
+            background: #000000;
+            border: 1px solid #00FF00;
+            padding: 20px;
+            border-radius: 0;
+        }
+        
+        .control-title {
+            color: #00FF00;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .philosopher-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .philosopher-btn {
+            background: #000000;
+            border: 1px solid #00FF00;
+            color: #FFFFFF;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            letter-spacing: 0.5px;
+        }
+        
+        .philosopher-btn:hover {
+            background: #00FF00;
+            color: #000000;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+        }
+        
+        .philosopher-btn.active {
+            background: #00FF00;
+            color: #000000;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.8);
+        }
+        
+        .analysis-modes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .mode-btn {
+            background: #000000;
+            border: 1px solid #FFFFFF;
+            color: #FFFFFF;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            font-size: 0.75em;
+        }
+        
+        .mode-btn:hover {
+            background: #FFFFFF;
+            color: #000000;
+        }
+        
+        .mode-btn.active {
+            background: #FFFFFF;
+            color: #000000;
+        }
+        
+        .visualization-area {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .chart-container {
+            background: #000000;
+            border: 1px solid #00FF00;
+            padding: 20px;
+            min-height: 400px;
+            box-shadow: inset 0 0 15px rgba(0, 255, 0, 0.1);
+        }
+        
+        .chart-title {
+            color: #00FF00;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+        
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            background: #000000;
+            border: 1px solid #00FF00;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            color: #00FF00;
+            font-size: 1.5em;
+            font-weight: bold;
+            display: block;
+            text-shadow: 0 0 8px rgba(0, 255, 0, 0.6);
+        }
+        
+        .stat-label {
+            color: #FFFFFF;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 5px;
+        }
+        
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .segment-analysis {
+            background: #000000;
+            border: 1px solid #00FF00;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .segment-item {
+            color: #FFFFFF;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            padding: 5px;
+            border-left: 3px solid #00FF00;
+            padding-left: 10px;
+        }
+        
+        .coherence-high { border-left-color: #00FF00; }
+        .coherence-medium { border-left-color: #FFFFFF; }
+        .coherence-low { border-left-color: #888888; }
+        
+        .loading {
+            text-align: center;
+            color: #00FF00;
+            font-size: 1.2em;
+            padding: 50px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .matrix-text {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>TEMPORAL COHERENCE ANALYSIS</h1>
+        <p class="subtitle">PHASE 2A :: DYNAMIC COHERENCE MAPPING INTERFACE</p>
+        
+        <div class="controls-grid">
+            <div class="control-panel">
+                <div class="control-title">◆ PHILOSOPHER SELECTION</div>
+                <div class="philosopher-selector">
+                    <button class="philosopher-btn active" id="nietzsche-btn" onclick="selectPhilosopher('NIETZSCHE')">
+                        NIETZSCHE
+                    </button>
+                    <button class="philosopher-btn" id="kant-btn" onclick="selectPhilosopher('KANT')">
+                        KANT
+                    </button>
+                    <button class="philosopher-btn" id="hume-btn" onclick="selectPhilosopher('HUME')">
+                        HUME
+                    </button>
+                </div>
+                <div class="analysis-modes">
+                    <button class="mode-btn active" id="temporal-btn" onclick="setMode('temporal')">
+                        TEMPORAL
+                    </button>
+                    <button class="mode-btn" id="segments-btn" onclick="setMode('segments')">
+                        SEGMENTS
+                    </button>
+                </div>
+            </div>
+            
+            <div class="control-panel">
+                <div class="control-title">◆ ANALYSIS PARAMETERS</div>
+                <div class="matrix-text">
+                    <div style="margin-bottom: 10px;">
+                        <span style="color: #00FF00;">WINDOW_SIZE:</span> 
+                        <span style="color: #FFFFFF;">50 SENTENCES</span>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <span style="color: #00FF00;">OVERLAP:</span> 
+                        <span style="color: #FFFFFF;">25 SENTENCES</span>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <span style="color: #00FF00;">ALGORITHM:</span> 
+                        <span style="color: #FFFFFF;">LSA_COSINE_SIM</span>
+                    </div>
+                    <div>
+                        <span style="color: #00FF00;">STATUS:</span> 
+                        <span style="color: #FFFFFF;" id="status">READY</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="visualization-area">
+            <div class="chart-container">
+                <div class="chart-title" id="chart-title">◆ NIETZSCHE :: TEMPORAL COHERENCE EVOLUTION</div>
+                <div id="temporal-chart"></div>
+            </div>
+        </div>
+        
+        <div class="stats-row">
+            <div class="stat-box">
+                <span class="stat-value" id="avg-coherence">0.643</span>
+                <div class="stat-label">AVG COHERENCE</div>
+            </div>
+            <div class="stat-box">
+                <span class="stat-value" id="volatility">0.127</span>
+                <div class="stat-label">VOLATILITY</div>
+            </div>
+            <div class="stat-box">
+                <span class="stat-value" id="peak-coherence">0.891</span>
+                <div class="stat-label">PEAK COHERENCE</div>
+            </div>
+            <div class="stat-box">
+                <span class="stat-value" id="coherent-segments">23</span>
+                <div class="stat-label">COHERENT SEGMENTS</div>
+            </div>
+        </div>
+        
+        <div class="matrix-grid">
+            <div class="segment-analysis">
+                <div class="control-title">◆ HIGH COHERENCE SEGMENTS</div>
+                <div id="high-segments">
+                    <div class="segment-item coherence-high">SEGMENT 12 :: 0.847 :: "MORAL FOUNDATIONS"</div>
+                    <div class="segment-item coherence-high">SEGMENT 18 :: 0.823 :: "WILL TO POWER ANALYSIS"</div>
+                    <div class="segment-item coherence-high">SEGMENT 31 :: 0.891 :: "MASTER-SLAVE MORALITY"</div>
+                    <div class="segment-item coherence-high">SEGMENT 45 :: 0.776 :: "BEYOND GOOD AND EVIL"</div>
+                </div>
+            </div>
+            
+            <div class="segment-analysis">
+                <div class="control-title">◆ COMPLEXITY PATTERNS</div>
+                <div id="patterns">
+                    <div class="segment-item coherence-medium">INCREASING TREND :: SEGMENTS 1-15</div>
+                    <div class="segment-item coherence-high">STABLE HIGH :: SEGMENTS 16-35</div>
+                    <div class="segment-item coherence-medium">VARIABLE :: SEGMENTS 36-50</div>
+                    <div class="segment-item coherence-low">FRAGMENTED :: SEGMENTS 51-60</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulated temporal coherence data for each philosopher
+        const philosopherData = {
+            'NIETZSCHE': {
+                coherence_timeline: generateCoherenceData(60, 0.6, 0.3, 'complex'),
+                avg_coherence: 0.643,
+                volatility: 0.127,
+                peak_coherence: 0.891,
+                coherent_segments: 23,
+                color: '#00FF00'
+            },
+            'KANT': {
+                coherence_timeline: generateCoherenceData(60, 0.75, 0.15, 'stable'),
+                avg_coherence: 0.756,
+                volatility: 0.089,
+                peak_coherence: 0.923,
+                coherent_segments: 31,
+                color: '#00FF00'  // Cambiado a Matrix green
+            },
+            'HUME': {
+                coherence_timeline: generateCoherenceData(60, 0.68, 0.18, 'linear'),
+                avg_coherence: 0.682,
+                volatility: 0.094,
+                peak_coherence: 0.854,
+                coherent_segments: 27,
+                color: '#00FF00'  // Cambiado a Matrix green
+            }
+        };
+
+        let currentPhilosopher = 'NIETZSCHE';
+        let currentMode = 'temporal';
+
+        function generateCoherenceData(segments, baseLevel, variance, pattern) {
+            const data = [];
+            
+            for (let i = 0; i < segments; i++) {
+                let coherence;
+                
+                switch (pattern) {
+                    case 'complex':
+                        // Nietzsche: high variability with occasional peaks
+                        coherence = baseLevel + 
+                                  Math.sin(i * 0.3) * variance * 0.7 + 
+                                  (Math.random() - 0.5) * variance;
+                        if (i % 15 === 0) coherence += 0.2; // Periodic peaks
+                        break;
+                        
+                    case 'stable':
+                        // Kant: generally stable with systematic progression
+                        coherence = baseLevel + 
+                                  Math.sin(i * 0.1) * variance * 0.5 + 
+                                  (Math.random() - 0.5) * variance * 0.3;
+                        break;
+                        
+                    case 'linear':
+                        // Hume: gradual progression with moderate variance
+                        coherence = baseLevel + 
+                                  (i / segments) * 0.1 + 
+                                  (Math.random() - 0.5) * variance;
+                        break;
+                }
+                
+                data.push(Math.max(0.1, Math.min(1.0, coherence)));
+            }
+            
+            return data;
+        }
+
+        function selectPhilosopher(philosopher) {
+            // Update button states
+            document.querySelectorAll('.philosopher-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(philosopher.toLowerCase() + '-btn').classList.add('active');
+            
+            currentPhilosopher = philosopher;
+            updateVisualization();
+            updateStats();
+            updateChartTitle();
+        }
+
+        function setMode(mode) {
+            // Update button states
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(mode + '-btn').classList.add('active');
+            
+            currentMode = mode;
+            updateVisualization();
+        }
+
+        function updateChartTitle() {
+            const title = `◆ ${currentPhilosopher} :: TEMPORAL COHERENCE EVOLUTION`;
+            document.getElementById('chart-title').textContent = title;
+        }
+
+        function updateStats() {
+            const data = philosopherData[currentPhilosopher];
+            document.getElementById('avg-coherence').textContent = data.avg_coherence.toFixed(3);
+            document.getElementById('volatility').textContent = data.volatility.toFixed(3);
+            document.getElementById('peak-coherence').textContent = data.peak_coherence.toFixed(3);
+            document.getElementById('coherent-segments').textContent = data.coherent_segments;
+        }
+
+        function updateVisualization() {
+            const data = philosopherData[currentPhilosopher];
+            
+            if (currentMode === 'temporal') {
+                showTemporalChart(data);
+            } else {
+                showSegmentAnalysis(data);
+            }
+        }
+
+        function showTemporalChart(data) {
+            const x = Array.from({length: data.coherence_timeline.length}, (_, i) => i + 1);
+            
+            const trace = {
+                x: x,
+                y: data.coherence_timeline,
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: {
+                    color: data.color,
+                    width: 3,
+                    shape: 'spline'
+                },
+                marker: {
+                    color: data.color,
+                    size: 6,
+                    symbol: 'circle'
+                },
+                fill: 'tonexty',
+                fillcolor: data.color + '20',
+                name: currentPhilosopher
+            };
+
+            // Add threshold lines
+            const avgLine = {
+                x: x,
+                y: Array(x.length).fill(data.avg_coherence),
+                type: 'scatter',
+                mode: 'lines',
+                line: {
+                    color: '#FFFFFF',
+                    width: 2,
+                    dash: 'dash'
+                },
+                name: 'AVG COHERENCE',
+                showlegend: false
+            };
+
+            const layout = {
+                title: {
+                    text: `TEMPORAL EVOLUTION :: ${currentPhilosopher}<br><sub>COHERENCE ACROSS TEXT SEGMENTS</sub>`,
+                    font: { color: '#FFFFFF', size: 14, family: 'Courier New' }
+                },
+                xaxis: {
+                    title: 'TEXT SEGMENT',
+                    titlefont: { color: '#00FF00', family: 'Courier New' },
+                    tickfont: { color: '#FFFFFF', family: 'Courier New' },
+                    gridcolor: '#00FF00',
+                    gridwidth: 1
+                },
+                yaxis: {
+                    title: 'SEMANTIC COHERENCE',
+                    titlefont: { color: '#00FF00', family: 'Courier New' },
+                    tickfont: { color: '#FFFFFF', family: 'Courier New' },
+                    gridcolor: '#00FF00',
+                    gridwidth: 1,
+                    range: [0, 1]
+                },
+                paper_bgcolor: '#000000',
+                plot_bgcolor: '#000000',
+                font: { color: '#00FF00', family: 'Courier New' },
+                showlegend: false,
+                margin: { t: 60, b: 50, l: 60, r: 30 }
+            };
+
+            Plotly.newPlot('temporal-chart', [trace, avgLine], layout, {
+                responsive: true,
+                displayModeBar: false
+            });
+        }
+
+        function showSegmentAnalysis(data) {
+            // Create heatmap visualization for segments
+            const segments = data.coherence_timeline.length;
+            const gridSize = Math.ceil(Math.sqrt(segments));
+            
+            const z = [];
+            const x = [];
+            const y = [];
+            
+            for (let i = 0; i < gridSize; i++) {
+                const row = [];
+                for (let j = 0; j < gridSize; j++) {
+                    const index = i * gridSize + j;
+                    if (index < segments) {
+                        row.push(data.coherence_timeline[index]);
+                    } else {
+                        row.push(0);
+                    }
+                }
+                z.push(row);
+            }
+
+            const trace = {
+                z: z,
+                type: 'heatmap',
+                colorscale: [
+                    [0, '#000000'],
+                    [0.5, '#888888'],
+                    [1, data.color]
+                ],
+                showscale: true,
+                colorbar: {
+                    title: 'COHERENCE',
+                    titlefont: { color: '#00FF00', family: 'Courier New' },
+                    tickfont: { color: '#FFFFFF', family: 'Courier New' }
+                }
+            };
+
+            const layout = {
+                title: {
+                    text: `SEGMENT MATRIX :: ${currentPhilosopher}<br><sub>COHERENCE INTENSITY MAP</sub>`,
+                    font: { color: '#FFFFFF', size: 14, family: 'Courier New' }
+                },
+                xaxis: {
+                    title: 'SEGMENT COLUMN',
+                    titlefont: { color: '#00FF00', family: 'Courier New' },
+                    tickfont: { color: '#FFFFFF', family: 'Courier New' }
+                },
+                yaxis: {
+                    title: 'SEGMENT ROW',
+                    titlefont: { color: '#00FF00', family: 'Courier New' },
+                    tickfont: { color: '#FFFFFF', family: 'Courier New' }
+                },
+                paper_bgcolor: '#000000',
+                plot_bgcolor: '#000000',
+                font: { color: '#00FF00', family: 'Courier New' },
+                margin: { t: 60, b: 50, l: 60, r: 30 }
+            };
+
+            Plotly.newPlot('temporal-chart', [trace], layout, {
+                responsive: true,
+                displayModeBar: false
+            });
+        }
+
+        // Initialize visualization
+        updateVisualization();
+        updateStats();
+
+        // Add some dynamic effects
+        setInterval(() => {
+            const status = document.getElementById('status');
+            const states = ['READY', 'ANALYZING', 'PROCESSING', 'READY'];
+            const currentIndex = states.indexOf(status.textContent);
+            status.textContent = states[(currentIndex + 1) % states.length];
+        }, 3000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semantic Network Analysis - Matrix Interface</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        body {
+            font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+            margin: 0;
+            padding: 20px;
+            background-color: #000000;
+            min-height: 100vh;
+            color: #00FF00;
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(0,255,0,0.15) 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: #000000;
+            border: 2px solid #00FF00;
+            border-radius: 0;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            color: #FFFFFF;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+        }
+        
+        .subtitle {
+            text-align: center;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: #FFFFFF;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        
+        .interface-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr 250px;
+            gap: 20px;
+            height: 80vh;
+        }
+        
+        .control-panel {
+            background: #000000;
+            border: 1px solid #00FF00;
+            padding: 15px;
+            overflow-y: auto;
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.1);
+        }
+        
+        .main-network {
+            background: #000000;
+            border: 1px solid #00FF00;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 15px rgba(0, 255, 0, 0.1);
+        }
+        
+        .info-panel {
+            background: #000000;
+            border: 1px solid #00FF00;
+            padding: 15px;
+            overflow-y: auto;
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.1);
+        }
+        
+        .panel-title {
+            color: #00FF00;
+            font-size: 1em;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #00FF00;
+            padding-bottom: 5px;
+        }
+        
+        .filter-group {
+            margin-bottom: 20px;
+        }
+        
+        .filter-label {
+            color: #FFFFFF;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .philosopher-filter {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .filter-checkbox:hover {
+            background-color: rgba(0, 255, 0, 0.1);
+        }
+        
+        .filter-checkbox input {
+            margin: 0;
+        }
+        
+        .filter-checkbox label {
+            color: #FFFFFF;
+            font-size: 0.8em;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .concept-strength {
+            margin-bottom: 15px;
+        }
+        
+        .strength-slider {
+            width: 100%;
+            margin-top: 8px;
+            background: #333;
+            height: 6px;
+            outline: none;
+            border-radius: 0;
+        }
+        
+        .network-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .control-btn {
+            background: #000000;
+            border: 1px solid #00FF00;
+            color: #FFFFFF;
+            padding: 8px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            background: #00FF00;
+            color: #000000;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+        }
+        
+        .node-info {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #333;
+        }
+        
+        .node-title {
+            color: #00FF00;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .node-details {
+            color: #FFFFFF;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+        
+        .connection-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .connection-item {
+            color: #FFFFFF;
+            font-size: 0.8em;
+            padding: 3px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .connection-strength {
+            color: #00FF00;
+            float: right;
+        }
+        
+        .stats-display {
+            background: #000000;
+            border: 1px solid #00FF00;
+            padding: 10px;
+            margin-top: 15px;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.85em;
+        }
+        
+        .stat-label {
+            color: #FFFFFF;
+        }
+        
+        .stat-value {
+            color: #00FF00;
+        }
+        
+        #network-svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .node:hover {
+            filter: brightness(1.5);
+        }
+        
+        .link {
+            stroke-opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+        
+        .node-label {
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            fill: #FFFFFF;
+            text-anchor: middle;
+            pointer-events: none;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00FF00;
+            font-size: 1.2em;
+            z-index: 1000;
+        }
+        
+        .matrix-scanner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00FF00, transparent);
+            animation: scan 3s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(500px); }
+        }
+        
+        .legend {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00FF00;
+            padding: 10px;
+            font-size: 0.8em;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SEMANTIC NETWORK ANALYSIS</h1>
+        <p class="subtitle">PHASE 2A :: CONCEPTUAL MAPPING INTERFACE</p>
+        
+        <div class="interface-grid">
+            <div class="control-panel">
+                <div class="panel-title">◆ NETWORK FILTERS</div>
+                
+                <div class="filter-group">
+                    <div class="filter-label">PHILOSOPHERS</div>
+                    <div class="philosopher-filter">
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="nietzsche-check" checked onchange="updateNetwork()">
+                            <label for="nietzsche-check">NIETZSCHE</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="kant-check" checked onchange="updateNetwork()">
+                            <label for="kant-check">KANT</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="hume-check" checked onchange="updateNetwork()">
+                            <label for="hume-check">HUME</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <div class="filter-label">CONCEPT CATEGORIES</div>
+                    <div class="philosopher-filter">
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="metaphysics-check" checked onchange="updateNetwork()">
+                            <label for="metaphysics-check">METAPHYSICS</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="ethics-check" checked onchange="updateNetwork()">
+                            <label for="ethics-check">ETHICS</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="epistemology-check" checked onchange="updateNetwork()">
+                            <label for="epistemology-check">EPISTEMOLOGY</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="logic-check" checked onchange="updateNetwork()">
+                            <label for="logic-check">LOGIC</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="concept-strength">
+                    <div class="filter-label">CONNECTION STRENGTH</div>
+                    <input type="range" class="strength-slider" min="0.1" max="1.0" step="0.1" value="0.3" 
+                           id="strength-slider" onchange="updateNetwork()">
+                    <div style="color: #FFFFFF; font-size: 0.8em; margin-top: 5px;">
+                        THRESHOLD: <span id="threshold-value">0.3</span>
+                    </div>
+                </div>
+                
+                <div class="network-controls">
+                    <button class="control-btn" onclick="resetNetwork()">RESET NETWORK</button>
+                    <button class="control-btn" onclick="centerNetwork()">CENTER VIEW</button>
+                    <button class="control-btn" onclick="pauseSimulation()">PAUSE/RESUME</button>
+                    <button class="control-btn" onclick="exportNetwork()">EXPORT DATA</button>
+                </div>
+                
+                <div class="stats-display">
+                    <div class="panel-title">◆ NETWORK STATS</div>
+                    <div class="stat-row">
+                        <span class="stat-label">NODES:</span>
+                        <span class="stat-value" id="node-count">47</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">CONNECTIONS:</span>
+                        <span class="stat-value" id="link-count">89</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">CLUSTERS:</span>
+                        <span class="stat-value" id="cluster-count">8</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">DENSITY:</span>
+                        <span class="stat-value" id="density">0.247</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="main-network">
+                <div class="loading-overlay" id="loading" style="display: none;">
+                    <div>
+                        ANALYZING SEMANTIC STRUCTURES...
+                        <div class="matrix-scanner"></div>
+                    </div>
+                </div>
+                <svg id="network-svg"></svg>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #00FF00;"></div>
+                        <span style="color: #FFFFFF;">CENTRAL CONCEPTS</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #FFFFFF;"></div>
+                        <span style="color: #FFFFFF;">SECONDARY CONCEPTS</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #888888;"></div>
+                        <span style="color: #FFFFFF;">PERIPHERAL CONCEPTS</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <div class="panel-title">◆ NODE ANALYSIS</div>
+                
+                <div class="node-info" id="selected-node">
+                    <div class="node-title">SELECT A CONCEPT</div>
+                    <div class="node-details">
+                        Click on any concept node to view detailed analysis including:
+                        <br>• Philosophical context
+                        <br>• Connection strength
+                        <br>• Related concepts
+                        <br>• Usage frequency
+                    </div>
+                </div>
+                
+                <div class="panel-title">◆ CONNECTIONS</div>
+                <div class="connection-list" id="connections">
+                    <div class="connection-item">
+                        REALITY → EXISTENCE <span class="connection-strength">0.847</span>
+                    </div>
+                    <div class="connection-item">
+                        KNOWLEDGE → TRUTH <span class="connection-strength">0.782</span>
+                    </div>
+                    <div class="connection-item">
+                        MORALITY → VALUES <span class="connection-strength">0.693</span>
+                    </div>
+                    <div class="connection-item">
+                        REASON → LOGIC <span class="connection-strength">0.654</span>
+                    </div>
+                </div>
+                
+                <div class="panel-title">◆ CLUSTER ANALYSIS</div>
+                <div id="cluster-info" style="color: #FFFFFF; font-size: 0.85em;">
+                    <div style="margin-bottom: 8px;">
+                        <span style="color: #00FF00;">CLUSTER 1:</span> EPISTEMOLOGICAL CORE
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span style="color: #00FF00;">CLUSTER 2:</span> ETHICAL FRAMEWORK
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span style="color: #00FF00;">CLUSTER 3:</span> METAPHYSICAL FOUNDATIONS
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span style="color: #00FF00;">CLUSTER 4:</span> LOGICAL STRUCTURES
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Semantic network data based on philosophical analysis
+        const networkData = {
+            nodes: [
+                // Central concepts
+                {id: "reality", label: "REALITY", category: "metaphysics", philosopher: "all", importance: 0.95},
+                {id: "knowledge", label: "KNOWLEDGE", category: "epistemology", philosopher: "all", importance: 0.92},
+                {id: "truth", label: "TRUTH", category: "epistemology", philosopher: "all", importance: 0.88},
+                {id: "existence", label: "EXISTENCE", category: "metaphysics", philosopher: "all", importance: 0.85},
+                {id: "reason", label: "REASON", category: "logic", philosopher: "kant", importance: 0.83},
+                {id: "experience", label: "EXPERIENCE", category: "epistemology", philosopher: "hume", importance: 0.81},
+                {id: "morality", label: "MORALITY", category: "ethics", philosopher: "kant", importance: 0.79},
+                {id: "power", label: "POWER", category: "ethics", philosopher: "nietzsche", importance: 0.77},
+                
+                // Secondary concepts
+                {id: "categories", label: "CATEGORIES", category: "logic", philosopher: "kant", importance: 0.65},
+                {id: "intuition", label: "INTUITION", category: "epistemology", philosopher: "kant", importance: 0.63},
+                {id: "causation", label: "CAUSATION", category: "metaphysics", philosopher: "hume", importance: 0.61},
+                {id: "skepticism", label: "SKEPTICISM", category: "epistemology", philosopher: "hume", importance: 0.59},
+                {id: "values", label: "VALUES", category: "ethics", philosopher: "nietzsche", importance: 0.57},
+                {id: "will", label: "WILL", category: "ethics", philosopher: "nietzsche", importance: 0.55},
+                {id: "duty", label: "DUTY", category: "ethics", philosopher: "kant", importance: 0.53},
+                {id: "habit", label: "HABIT", category: "epistemology", philosopher: "hume", importance: 0.51},
+                
+                // Peripheral concepts
+                {id: "freedom", label: "FREEDOM", category: "ethics", philosopher: "all", importance: 0.49},
+                {id: "nature", label: "NATURE", category: "metaphysics", philosopher: "all", importance: 0.47},
+                {id: "mind", label: "MIND", category: "metaphysics", philosopher: "all", importance: 0.45},
+                {id: "consciousness", label: "CONSCIOUSNESS", category: "metaphysics", philosopher: "all", importance: 0.43},
+                {id: "judgment", label: "JUDGMENT", category: "logic", philosopher: "kant", importance: 0.41},
+                {id: "passion", label: "PASSION", category: "ethics", philosopher: "hume", importance: 0.39},
+                {id: "superman", label: "ÜBERMENSCH", category: "ethics", philosopher: "nietzsche", importance: 0.37},
+                {id: "necessity", label: "NECESSITY", category: "logic", philosopher: "all", importance: 0.35}
+            ],
+            
+            links: [
+                // Strong connections
+                {source: "reality", target: "existence", strength: 0.89},
+                {source: "knowledge", target: "truth", strength: 0.85},
+                {source: "knowledge", target: "experience", strength: 0.78},
+                {source: "reason", target: "categories", strength: 0.76},
+                {source: "morality", target: "duty", strength: 0.74},
+                {source: "power", target: "values", strength: 0.72},
+                {source: "experience", target: "causation", strength: 0.70},
+                {source: "skepticism", target: "knowledge", strength: 0.68},
+                
+                // Medium connections
+                {source: "intuition", target: "knowledge", strength: 0.55},
+                {source: "will", target: "power", strength: 0.53},
+                {source: "habit", target: "experience", strength: 0.51},
+                {source: "freedom", target: "morality", strength: 0.49},
+                {source: "nature", target: "reality", strength: 0.47},
+                {source: "mind", target: "consciousness", strength: 0.45},
+                {source: "judgment", target: "reason", strength: 0.43},
+                {source: "passion", target: "morality", strength: 0.41},
+                
+                // Weak connections
+                {source: "superman", target: "values", strength: 0.35},
+                {source: "necessity", target: "reason", strength: 0.33},
+                {source: "truth", target: "reality", strength: 0.31},
+                {source: "existence", target: "consciousness", strength: 0.29}
+            ]
+        };
+
+        let simulation, svg, nodeGroup, linkGroup;
+        let currentThreshold = 0.3;
+        let isPaused = false;
+
+        function initializeNetwork() {
+            const container = d3.select("#network-svg");
+            const containerNode = container.node();
+            const rect = containerNode.getBoundingClientRect();
+            
+            svg = container
+                .attr("width", rect.width)
+                .attr("height", rect.height);
+
+            // Create groups for links and nodes
+            linkGroup = svg.append("g").attr("class", "links");
+            nodeGroup = svg.append("g").attr("class", "nodes");
+
+            // Initialize simulation
+            simulation = d3.forceSimulation()
+                .force("link", d3.forceLink().id(d => d.id).distance(80))
+                .force("charge", d3.forceManyBody().strength(-200))
+                .force("center", d3.forceCenter(rect.width / 2, rect.height / 2))
+                .force("collision", d3.forceCollide().radius(25));
+
+            updateNetwork();
+        }
+
+        function updateNetwork() {
+            showLoading();
+            
+            setTimeout(() => {
+                const threshold = parseFloat(document.getElementById("strength-slider").value);
+                document.getElementById("threshold-value").textContent = threshold.toFixed(1);
+                currentThreshold = threshold;
+
+                // Filter data based on controls
+                const filteredData = filterNetworkData();
+                
+                // Update links
+                const links = linkGroup.selectAll(".link")
+                    .data(filteredData.links, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
+
+                links.exit().remove();
+
+                const linkEnter = links.enter().append("line")
+                    .attr("class", "link")
+                    .attr("stroke", "#00FF00")
+                    .attr("stroke-width", d => Math.sqrt(d.strength * 5))
+                    .attr("stroke-opacity", d => d.strength);
+
+                const linkUpdate = linkEnter.merge(links);
+
+                // Update nodes
+                const nodes = nodeGroup.selectAll(".node-group")
+                    .data(filteredData.nodes, d => d.id);
+
+                nodes.exit().remove();
+
+                const nodeEnter = nodes.enter().append("g")
+                    .attr("class", "node-group")
+                    .call(d3.drag()
+                        .on("start", dragstarted)
+                        .on("drag", dragged)
+                        .on("end", dragended));
+
+                nodeEnter.append("circle")
+                    .attr("class", "node")
+                    .attr("r", d => 5 + d.importance * 15)
+                    .attr("fill", d => getNodeColor(d))
+                    .attr("stroke", "#00FF00")
+                    .attr("stroke-width", 2)
+                    .on("click", selectNode)
+                    .on("mouseover", highlightNode)
+                    .on("mouseout", unhighlightNode);
+
+                nodeEnter.append("text")
+                    .attr("class", "node-label")
+                    .attr("dy", d => -(5 + d.importance * 15) - 5)
+                    .text(d => d.label)
+                    .style("font-size", d => Math.max(8, d.importance * 12) + "px");
+
+                const nodeUpdate = nodeEnter.merge(nodes);
+
+                // Update simulation
+                simulation.nodes(filteredData.nodes);
+                simulation.force("link").links(filteredData.links);
+                simulation.alpha(1).restart();
+
+                // Update positions
+                simulation.on("tick", () => {
+                    linkUpdate
+                        .attr("x1", d => d.source.x)
+                        .attr("y1", d => d.source.y)
+                        .attr("x2", d => d.target.x)
+                        .attr("y2", d => d.target.y);
+
+                    nodeUpdate
+                        .attr("transform", d => `translate(${d.x},${d.y})`);
+                });
+
+                updateStats(filteredData);
+                hideLoading();
+            }, 500);
+        }
+
+        function filterNetworkData() {
+            // Get filter states
+            const philosophers = [];
+            if (document.getElementById("nietzsche-check").checked) philosophers.push("nietzsche");
+            if (document.getElementById("kant-check").checked) philosophers.push("kant");
+            if (document.getElementById("hume-check").checked) philosophers.push("hume");
+
+            const categories = [];
+            if (document.getElementById("metaphysics-check").checked) categories.push("metaphysics");
+            if (document.getElementById("ethics-check").checked) categories.push("ethics");
+            if (document.getElementById("epistemology-check").checked) categories.push("epistemology");
+            if (document.getElementById("logic-check").checked) categories.push("logic");
+
+            // Filter nodes
+            const filteredNodes = networkData.nodes.filter(node => {
+                const philosopherMatch = node.philosopher === "all" || philosophers.includes(node.philosopher);
+                const categoryMatch = categories.includes(node.category);
+                return philosopherMatch && categoryMatch;
+            });
+
+            // Filter links
+            const nodeIds = new Set(filteredNodes.map(n => n.id));
+            const filteredLinks = networkData.links.filter(link => {
+                const sourceExists = nodeIds.has(link.source.id || link.source);
+                const targetExists = nodeIds.has(link.target.id || link.target);
+                const strengthMeetsThreshold = link.strength >= currentThreshold;
+                return sourceExists && targetExists && strengthMeetsThreshold;
+            });
+
+            return { nodes: filteredNodes, links: filteredLinks };
+        }
+
+        function getNodeColor(node) {
+            if (node.importance > 0.7) return "#00FF00";  // High importance - Matrix green
+            if (node.importance > 0.5) return "#FFFFFF";  // Medium importance - White
+            return "#888888";  // Low importance - Gray
+        }
+
+        function selectNode(event, d) {
+            const nodeInfo = document.getElementById("selected-node");
+            nodeInfo.innerHTML = `
+                <div class="node-title">${d.label}</div>
+                <div class="node-details">
+                    <strong>CATEGORY:</strong> ${d.category.toUpperCase()}<br>
+                    <strong>PHILOSOPHER:</strong> ${d.philosopher.toUpperCase()}<br>
+                    <strong>IMPORTANCE:</strong> ${d.importance.toFixed(3)}<br>
+                    <strong>CONNECTIONS:</strong> ${getNodeConnections(d).length}
+                </div>
+            `;
+
+            // Update connections list
+            updateConnectionsList(d);
+        }
+
+        function getNodeConnections(node) {
+            return networkData.links.filter(link => 
+                (link.source.id || link.source) === node.id || 
+                (link.target.id || link.target) === node.id
+            );
+        }
+
+        function updateConnectionsList(node) {
+            const connections = getNodeConnections(node);
+            const connectionsList = document.getElementById("connections");
+            
+            connectionsList.innerHTML = connections.map(link => {
+                const otherNode = (link.source.id || link.source) === node.id ? 
+                    (link.target.label || link.target) : (link.source.label || link.source);
+                return `<div class="connection-item">
+                    ${node.label} ↔ ${otherNode} 
+                    <span class="connection-strength">${link.strength.toFixed(3)}</span>
+                </div>`;
+            }).join('');
+        }
+
+        function highlightNode(event, d) {
+            d3.select(this).attr("stroke-width", 4);
+        }
+
+        function unhighlightNode(event, d) {
+            d3.select(this).attr("stroke-width", 2);
+        }
+
+        function updateStats(data) {
+            document.getElementById("node-count").textContent = data.nodes.length;
+            document.getElementById("link-count").textContent = data.links.length;
+            
+            const density = data.links.length / (data.nodes.length * (data.nodes.length - 1) / 2);
+            document.getElementById("density").textContent = density.toFixed(3);
+        }
+
+        function showLoading() {
+            document.getElementById("loading").style.display = "flex";
+        }
+
+        function hideLoading() {
+            document.getElementById("loading").style.display = "none";
+        }
+
+        function resetNetwork() {
+            document.getElementById("strength-slider").value = 0.3;
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+            updateNetwork();
+        }
+
+        function centerNetwork() {
+            const rect = svg.node().getBoundingClientRect();
+            simulation.force("center", d3.forceCenter(rect.width / 2, rect.height / 2));
+            simulation.alpha(0.3).restart();
+        }
+
+        function pauseSimulation() {
+            if (isPaused) {
+                simulation.restart();
+                isPaused = false;
+            } else {
+                simulation.stop();
+                isPaused = true;
+            }
+        }
+
+        function exportNetwork() {
+            const filteredData = filterNetworkData();
+            const dataStr = JSON.stringify(filteredData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'semantic_network_data.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Drag functions
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', () => {
+            setTimeout(initializeNetwork, 100);
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const container = d3.select("#network-svg");
+            const containerNode = container.node();
+            const rect = containerNode.getBoundingClientRect();
+            
+            svg.attr("width", rect.width).attr("height", rect.height);
+            simulation.force("center", d3.forceCenter(rect.width / 2, rect.height / 2));
+            simulation.alpha(0.3).restart();
+        });
+
+        // Add matrix-style scanning effect
+        setInterval(() => {
+            const scanner = document.querySelector('.matrix-scanner');
+            if (scanner && Math.random() > 0.7) {
+                scanner.style.animation = 'none';
+                setTimeout(() => {
+                    scanner.style.animation = 'scan 3s linear infinite';
+                }, 100);
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
