@@ -39,6 +39,7 @@
 - `src/philosophical_analysis/core/convex_hull.py` 
 - Updated classification with 100% accuracy target
 
+#### **1B. Scientific Validation (2 days)**
 - [ ] **Literature validation tests**
   - Test on classic literature (as in original paper)
   - Implement "disorder" artificial text generation
@@ -53,7 +54,6 @@
 - `scripts/validate_against_paper.py`
 - `tests/test_paper_replication.py`
 - Validation report comparing our results to original paper
-
 
 ---
 
