@@ -1,9 +1,422 @@
 {
-  "nodes": [],
+  "nodes": [
+    {
+      "id": "reason",
+      "label": "REASON",
+      "category": "epistemological",
+      "philosopher": "Kant",
+      "importance": 1.0,
+      "frequency": 1425,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "experience",
+      "label": "EXPERIENCE",
+      "category": "epistemological",
+      "philosopher": "Kant",
+      "importance": 0.7319298245614035,
+      "frequency": 1043,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "time",
+      "label": "TIME",
+      "category": "metaphysical",
+      "philosopher": "Kant",
+      "importance": 0.6224561403508772,
+      "frequency": 887,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "understanding",
+      "label": "UNDERSTANDING",
+      "category": "epistemological",
+      "philosopher": "Kant",
+      "importance": 0.5410526315789473,
+      "frequency": 771,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "nature",
+      "label": "NATURE",
+      "category": "metaphysical",
+      "philosopher": "Kant",
+      "importance": 0.5326315789473685,
+      "frequency": 759,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "will",
+      "label": "WILL",
+      "category": "ethical",
+      "philosopher": "Nietzsche",
+      "importance": 0.5136842105263157,
+      "frequency": 732,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "existence",
+      "label": "EXISTENCE",
+      "category": "metaphysical",
+      "philosopher": "Kant",
+      "importance": 0.47157894736842104,
+      "frequency": 672,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "intuition",
+      "label": "INTUITION",
+      "category": "epistemological",
+      "philosopher": "Kant",
+      "importance": 0.45403508771929824,
+      "frequency": 647,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "being",
+      "label": "BEING",
+      "category": "metaphysical",
+      "philosopher": "Kant",
+      "importance": 0.4519298245614035,
+      "frequency": 644,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "space",
+      "label": "SPACE",
+      "category": "metaphysical",
+      "philosopher": "Kant",
+      "importance": 0.27578947368421053,
+      "frequency": 393,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "knowledge",
+      "label": "KNOWLEDGE",
+      "category": "epistemological",
+      "philosopher": "Kant",
+      "importance": 0.22596491228070176,
+      "frequency": 322,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "mind",
+      "label": "MIND",
+      "category": "metaphysical",
+      "philosopher": "Kant",
+      "importance": 0.2231578947368421,
+      "frequency": 318,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "power",
+      "label": "POWER",
+      "category": "political",
+      "philosopher": "Kant",
+      "importance": 0.19157894736842104,
+      "frequency": 273,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "reality",
+      "label": "REALITY",
+      "category": "metaphysical",
+      "philosopher": "Kant",
+      "importance": 0.18666666666666668,
+      "frequency": 266,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "proposition",
+      "label": "PROPOSITION",
+      "category": "logical",
+      "philosopher": "Kant",
+      "importance": 0.18596491228070175,
+      "frequency": 265,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "necessity",
+      "label": "NECESSITY",
+      "category": "metaphysical",
+      "philosopher": "Kant",
+      "importance": 0.1775438596491228,
+      "frequency": 253,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "good",
+      "label": "GOOD",
+      "category": "ethical",
+      "philosopher": "Nietzsche",
+      "importance": 0.15859649122807018,
+      "frequency": 226,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "truth",
+      "label": "TRUTH",
+      "category": "epistemological",
+      "philosopher": "Kant",
+      "importance": 0.1543859649122807,
+      "frequency": 220,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "proof",
+      "label": "PROOF",
+      "category": "logical",
+      "philosopher": "Kant",
+      "importance": 0.1312280701754386,
+      "frequency": 187,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "consciousness",
+      "label": "CONSCIOUSNESS",
+      "category": "metaphysical",
+      "philosopher": "Kant",
+      "importance": 0.13052631578947368,
+      "frequency": 186,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "soul",
+      "label": "SOUL",
+      "category": "metaphysical",
+      "philosopher": "Nietzsche",
+      "importance": 0.12070175438596491,
+      "frequency": 172,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "perception",
+      "label": "PERCEPTION",
+      "category": "epistemological",
+      "philosopher": "Kant",
+      "importance": 0.11929824561403508,
+      "frequency": 170,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "state",
+      "label": "STATE",
+      "category": "political",
+      "philosopher": "Kant",
+      "importance": 0.11649122807017544,
+      "frequency": 166,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "substance",
+      "label": "SUBSTANCE",
+      "category": "metaphysical",
+      "philosopher": "Kant",
+      "importance": 0.1143859649122807,
+      "frequency": 163,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "action",
+      "label": "ACTION",
+      "category": "ethical",
+      "philosopher": "Kant",
+      "importance": 0.09894736842105263,
+      "frequency": 141,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "morality",
+      "label": "MORALITY",
+      "category": "ethical",
+      "philosopher": "Nietzsche",
+      "importance": 0.09754385964912281,
+      "frequency": 139,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "argument",
+      "label": "ARGUMENT",
+      "category": "logical",
+      "philosopher": "Kant",
+      "importance": 0.0968421052631579,
+      "frequency": 138,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "belief",
+      "label": "BELIEF",
+      "category": "epistemological",
+      "philosopher": "Hume",
+      "importance": 0.08421052631578947,
+      "frequency": 120,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "right",
+      "label": "RIGHT",
+      "category": "ethical",
+      "philosopher": "Kant",
+      "importance": 0.08140350877192983,
+      "frequency": 116,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    },
+    {
+      "id": "freedom",
+      "label": "FREEDOM",
+      "category": "ethical",
+      "philosopher": "Kant",
+      "importance": 0.08070175438596491,
+      "frequency": 115,
+      "texts": [
+        "hume_human_understanding",
+        "kant_critique_pure_reason",
+        "nietzsche_beyond_good_evil"
+      ]
+    }
+  ],
   "links": [],
   "metadata": {
-    "total_concepts": 0,
+    "total_concepts": 30,
     "total_relationships": 0,
-    "density": 0
+    "density": 0.0,
+    "categories": [
+      "epistemological",
+      "metaphysical",
+      "ethical",
+      "political",
+      "logical"
+    ],
+    "category_distribution": {
+      "epistemological": 8,
+      "metaphysical": 11,
+      "ethical": 6,
+      "political": 2,
+      "logical": 3
+    },
+    "link_type_distribution": {},
+    "philosopher_distribution": {
+      "Kant": 25,
+      "Nietzsche": 4,
+      "Hume": 1
+    },
+    "avg_importance": 0.27904093567251465,
+    "is_placeholder": false
   }
 }
