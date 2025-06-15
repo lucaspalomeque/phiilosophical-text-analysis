@@ -267,32 +267,60 @@ class AdvancedPOSAnalyzer:
         """
         logger.info(f"Starting advanced POS analysis for: {text_id}")
         
-        # Tokenize and tag
-        tagged_sentences = self.tokenize_and_tag(text)
-        
-        if len(tagged_sentences) < 2:
+        # Handle empty or very short text
+        if not text or len(text.strip()) < 3:
+            logger.warning(f"Text '{text_id}' is empty or too short for analysis.")
             return {
                 'text_id': text_id,
-                'error': 'insufficient_sentences_for_pos',
-                'sentence_count': len(tagged_sentences)
+                'sentence_count': 0,
+                'total_words': 0,
+                'target_determiners_count': 0,
+                'target_determiners_freq': 0.0,
+                'max_phrase_length': 0,
+                'avg_sentence_length': 0.0,
+                'syntactic_complexity': {},
+                'clauses_per_sentence': 0.0, 
+                'analysis_type': 'advanced_pos',
+                'error': 'empty_or_short_text'
             }
+
+        # Tokenize and tag sentences
+        tagged_sentences = self.tokenize_and_tag(text)
         
-        # Extract determiners (paper-specific)
-        determiner_metrics = self.extract_determiners(tagged_sentences)
-        
-        # Calculate phrase metrics
+        # Handle case where no valid sentences are found after tokenization
+        if not tagged_sentences:
+            logger.warning(f"Text '{text_id}' has no valid sentences after tokenization.")
+            return {
+                'text_id': text_id,
+                'sentence_count': 0,
+                'total_words': 0,
+                'target_determiners_count': 0,
+                'target_determiners_freq': 0.0,
+                'max_phrase_length': 0,
+                'avg_sentence_length': 0.0,
+                'syntactic_complexity': {},
+                'clauses_per_sentence': 0.0, 
+                'analysis_type': 'advanced_pos',
+                'error': 'no_valid_sentences'
+            }     # Calculate phrase metrics
         phrase_metrics = self.calculate_phrase_metrics(tagged_sentences)
         
         # Analyze syntactic complexity
         complexity_metrics = self.analyze_syntactic_complexity(tagged_sentences)
         
+        # Extract determiners (paper-specific)
+        determiner_metrics = self.extract_determiners(tagged_sentences)
+        
         # Combine all metrics
         result = {
             'text_id': text_id,
             'sentence_count': len(tagged_sentences),
-            **determiner_metrics,
-            **phrase_metrics,
-            **complexity_metrics,
+            'total_words': determiner_metrics['total_words'],
+            'target_determiners_count': determiner_metrics['target_determiners_count'],
+            'target_determiners_freq': determiner_metrics['target_determiners_freq'],
+            'max_phrase_length': phrase_metrics['max_phrase_length'],
+            'avg_sentence_length': complexity_metrics['avg_sentence_length'],
+            'syntactic_complexity': complexity_metrics,
             'analysis_type': 'advanced_pos'
         }
         

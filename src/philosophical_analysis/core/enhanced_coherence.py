@@ -16,6 +16,8 @@ from scipy import stats
 import nltk
 from nltk.tokenize import sent_tokenize
 import re
+import joblib
+from pathlib import Path
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -121,9 +123,47 @@ class EnhancedCoherenceAnalyzer:
         self.lsa_model.fit(tfidf_matrix)
         
         self.is_fitted = True
-        logger.info(f"Enhanced analyzer fitted with {n_components} LSA components")
+        logger.info(f"Enhanced analyzer fitted with {len(all_sentences)} sentences.")
         
         return self
+
+    def save_model(self, model_path: str):
+        """
+        Save the fitted vectorizer and LSA model.
+        
+        Args:
+            model_path: Directory to save the models to.
+        """
+        if not self.is_fitted:
+            raise RuntimeError("Analyzer must be fitted before saving the model.")
+        
+        path = Path(model_path)
+        path.mkdir(parents=True, exist_ok=True)
+        
+        joblib.dump(self.vectorizer, path / "vectorizer.pkl")
+        joblib.dump(self.lsa_model, path / "lsa_model.pkl")
+        
+        logger.info(f"Coherence model saved to {model_path}")
+
+    def load_model(self, model_path: str):
+        """
+        Load a pre-trained vectorizer and LSA model.
+        
+        Args:
+            model_path: Directory to load the models from.
+        """
+        path = Path(model_path)
+        vectorizer_path = path / "vectorizer.pkl"
+        lsa_model_path = path / "lsa_model.pkl"
+        
+        if not vectorizer_path.exists() or not lsa_model_path.exists():
+            raise FileNotFoundError(f"Model files not found in {model_path}")
+            
+        self.vectorizer = joblib.load(vectorizer_path)
+        self.lsa_model = joblib.load(lsa_model_path)
+        self.is_fitted = True
+        
+        logger.info(f"Coherence model loaded from {model_path}")
     
     def get_sentence_vector(self, sentence: str) -> np.ndarray:
         """

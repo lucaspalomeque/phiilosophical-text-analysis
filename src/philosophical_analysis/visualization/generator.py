@@ -368,7 +368,7 @@ class VisualizationGenerator:
             max_features=top_n * 2,
             stop_words=list(stop_words),
             ngram_range=(1, 2),
-            min_df=2
+            min_df=1
         )
         
         # Fit on individual texts to track philosopher associations

@@ -45,8 +45,7 @@ class ConvexHullClassifier:
         ]
         
         self.scaler = StandardScaler()
-        self.coherent_hull = None
-        self.incoherent_hull = None
+        self.hulls: Dict[int, Optional[ConvexHull]] = {}
         self.is_fitted = False
         
         # Classification thresholds from paper
@@ -103,7 +102,7 @@ class ConvexHullClassifier:
             ConvexHull object or None if creation fails
         """
         if len(points) < len(self.features) + 1:
-            logger.warning(f"Insufficient points for {len(self.features)}D convex hull")
+            warnings.warn(f"Insufficient points for {len(self.features)}D convex hull. Need at least {len(self.features) + 1}, got {len(points)}.", UserWarning)
             return None
         
         try:
@@ -111,7 +110,7 @@ class ConvexHullClassifier:
             unique_points = np.unique(points, axis=0)
             
             if len(unique_points) < len(self.features) + 1:
-                logger.warning("Too few unique points for convex hull")
+                warnings.warn(f"Too few unique points for convex hull. Need at least {len(self.features) + 1}, got {len(unique_points)}.", UserWarning)
                 return None
             
             hull = ConvexHull(unique_points)
@@ -186,21 +185,21 @@ class ConvexHullClassifier:
         # Standardize features
         X_scaled = self.scaler.fit_transform(X)
         
-        # Separate coherent and incoherent samples
-        coherent_mask = y == 1
-        incoherent_mask = y == 0
+        # Create hulls for each class
+        self.hulls = {}
+        unique_labels = np.unique(y)
+        for label in unique_labels:
+            class_points = X_scaled[y == label]
+            
+            # Create hull
+            hull = self.create_convex_hull(class_points)
+            self.hulls[label] = hull
         
-        coherent_points = X_scaled[coherent_mask]
-        incoherent_points = X_scaled[incoherent_mask]
+        if not self.hulls or all(h is None for h in self.hulls.values()):
+            # This is a warning because in cross-validation, one fold might fail but others succeed.
+            warnings.warn("Could not create any valid convex hulls.", UserWarning)
         
-        logger.info(f"Coherent samples: {len(coherent_points)}, Incoherent samples: {len(incoherent_points)}")
-        
-        # Create convex hulls
-        self.coherent_hull = self.create_convex_hull(coherent_points)
-        self.incoherent_hull = self.create_convex_hull(incoherent_points)
-        
-        if self.coherent_hull is None and self.incoherent_hull is None:
-            raise ValueError("Failed to create any convex hulls")
+        self.is_fitted = True
         
         self.is_fitted = True
         logger.info("Convex hull classifier fitted successfully")
@@ -218,29 +217,58 @@ class ConvexHullClassifier:
             Tuple of (predicted_class, confidence)
         """
         if not self.is_fitted:
-            raise ValueError("Classifier must be fitted before prediction")
+            raise RuntimeError("Classifier must be fitted before prediction.")
         
-        # Standardize point
-        point_scaled = self.scaler.transform([point])[0]
+        point_scaled = self.scaler.transform(point.reshape(1, -1)).flatten()
         
-        # Calculate distances to hulls
-        coherent_distance = float('inf')
-        incoherent_distance = float('inf')
+        # Paper's simple rule: if coherence is below threshold, classify as incoherent
+        # This is a heuristic pre-filter
+        if 'semantic_coherence' in self.features:
+            coherence_idx = self.features.index('semantic_coherence')
+            if point[coherence_idx] < self.coherence_threshold:
+                return 0, 1.0 - point[coherence_idx] / self.coherence_threshold
+
+        coherent_hull = self.hulls.get(1)
+        incoherent_hull = self.hulls.get(0)
+
+        # Check if inside coherent hull
+        if coherent_hull and self.point_in_hull(point_scaled, coherent_hull):
+            return 1, 1.0
         
-        if self.coherent_hull is not None:
-            coherent_distance = self.distance_to_hull(point_scaled, self.coherent_hull)
+        # Calculate distances to both hulls
+        dist_coherent = np.inf
+        if coherent_hull:
+            dist_coherent = self.distance_to_hull(point_scaled, coherent_hull)
+            
+        dist_incoherent = np.inf
+        if incoherent_hull:
+            dist_incoherent = self.distance_to_hull(point_scaled, incoherent_hull)
         
-        if self.incoherent_hull is not None:
-            incoherent_distance = self.distance_to_hull(point_scaled, self.incoherent_hull)
-        
-        # Classify based on minimum distance
-        if coherent_distance <= incoherent_distance:
-            predicted_class = 1  # Coherent
-            confidence = 1.0 / (1.0 + coherent_distance)
+        # If no valid hulls exist, cannot predict.
+        if not self.hulls or all(h is None for h in self.hulls.values()):
+            logger.warning("No valid hulls were created during fitting. Cannot predict.")
+            return -1, 0.0 # Or some other indicator of failure
+            
+        # Predict class based on minimum distance
+        if np.isinf(dist_coherent) and np.isinf(dist_incoherent):
+            return -1, 0.0 # Should be caught by the check above, but as a safeguard.
+
+        if dist_coherent < dist_incoherent:
+            predicted_class = 1
+            # Confidence calculation needs to handle infinite distance
+            if np.isinf(dist_incoherent):
+                confidence = 0.99 # Very confident if the other hull doesn't exist
+            else:
+                total_dist = dist_coherent + dist_incoherent
+                confidence = 1.0 - (dist_coherent / total_dist) if total_dist > 0 else 0.5
         else:
-            predicted_class = 0  # Incoherent
-            confidence = 1.0 / (1.0 + incoherent_distance)
-        
+            predicted_class = 0
+            if np.isinf(dist_coherent):
+                confidence = 0.99 # Very confident
+            else:
+                total_dist = dist_coherent + dist_incoherent
+                confidence = 1.0 - (dist_incoherent / total_dist) if total_dist > 0 else 0.5
+            
         return predicted_class, confidence
     
     def predict(self, X: np.ndarray) -> np.ndarray:

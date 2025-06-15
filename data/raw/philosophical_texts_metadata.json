@@ -1,0 +1,98 @@
+{
+  "plato_republic": {
+    "title": "The Republic",
+    "author": "Plato",
+    "school": "Ancient Greek",
+    "period": "Classical",
+    "url": "https://www.gutenberg.org/files/1497/1497-0.txt",
+    "filename": "plato_republic.txt"
+  },
+  "plato_phaedo": {
+    "title": "Phaedo",
+    "author": "Plato",
+    "school": "Ancient Greek",
+    "period": "Classical",
+    "url": "https://www.gutenberg.org/files/1658/1658-0.txt",
+    "filename": "plato_phaedo.txt"
+  },
+  "plato_apology": {
+    "title": "Apology",
+    "author": "Plato",
+    "school": "Ancient Greek",
+    "period": "Classical",
+    "url": "https://www.gutenberg.org/files/1656/1656-0.txt",
+    "filename": "plato_apology.txt"
+  },
+  "aristotle_nicomachean_ethics": {
+    "title": "The Nicomachean Ethics",
+    "author": "Aristotle",
+    "school": "Ancient Greek",
+    "period": "Classical",
+    "url": "https://www.gutenberg.org/cache/epub/8438/pg8438.txt",
+    "filename": "aristotle_nicomachean_ethics.txt"
+  },
+  "aristotle_politics": {
+    "title": "Politics",
+    "author": "Aristotle",
+    "school": "Ancient Greek",
+    "period": "Classical",
+    "url": "https://www.gutenberg.org/files/6762/6762-0.txt",
+    "filename": "aristotle_politics.txt"
+  },
+  "aristotle_metaphysics": {
+    "title": "Metaphysics",
+    "author": "Aristotle",
+    "school": "Ancient Greek",
+    "period": "Classical",
+    "url": "https://www.gutenberg.org/files/1974/1974-0.txt",
+    "filename": "aristotle_metaphysics.txt"
+  },
+  "kant_critique_pure_reason": {
+    "title": "The Critique of Pure Reason",
+    "author": "Immanuel Kant",
+    "school": "German Idealism",
+    "period": "Enlightenment",
+    "url": "https://www.gutenberg.org/files/4280/4280-0.txt",
+    "filename": "kant_critique_pure_reason.txt"
+  },
+  "kant_critique_practical_reason": {
+    "title": "The Critique of Practical Reason",
+    "author": "Immanuel Kant",
+    "school": "German Idealism",
+    "period": "Enlightenment",
+    "url": "https://www.gutenberg.org/files/5683/5683-0.txt",
+    "filename": "kant_critique_practical_reason.txt"
+  },
+  "kant_groundwork_metaphysics": {
+    "title": "Fundamental Principles of the Metaphysics of Morals",
+    "author": "Immanuel Kant",
+    "school": "German Idealism",
+    "period": "Enlightenment",
+    "url": "https://www.gutenberg.org/files/5682/5682-0.txt",
+    "filename": "kant_groundwork_metaphysics.txt"
+  },
+  "hegel_phenomenology": {
+    "title": "The Phenomenology of Mind",
+    "author": "Georg Wilhelm Friedrich Hegel",
+    "school": "German Idealism",
+    "period": "Romantic",
+    "url": "https://www.gutenberg.org/files/26576/26576-0.txt",
+    "filename": "hegel_phenomenology.txt"
+  },
+  "descartes_discourse_method": {
+    "title": "Discourse on the Method",
+    "author": "René Descartes",
+    "school": "Continental Rationalism",
+    "period": "Early Modern",
+    "url": "https://www.gutenberg.org/files/59/59-0.txt",
+    "filename": "descartes_discourse_method.txt"
+  },
+  "descartes_meditations": {
+    "title": "Meditations on First Philosophy",
+    "author": "René Descartes",
+    "school": "Continental Rationalism",
+    "period": "Early Modern",
+    "url": "https://www.gutenberg.org/files/59/59-0.txt",
+    "filename": "descartes_meditations.txt"
+  }
+}

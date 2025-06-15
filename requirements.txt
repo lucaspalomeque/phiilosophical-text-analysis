@@ -37,3 +37,7 @@ click>=8.0.0
 # flake8>=4.0.0
 # mypy>=0.910
 networkx>=2.6.0
+
+# Jupyter Notebook environment
+jupyterlab>=3.2.0
+ipywidgets>=7.6.0

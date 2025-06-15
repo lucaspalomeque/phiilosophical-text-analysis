@@ -20,6 +20,9 @@ warnings.filterwarnings('ignore')
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+from .pos_analyzer import AdvancedPOSAnalyzer
+from .enhanced_coherence import EnhancedCoherenceAnalyzer
+from .convex_hull import ConvexHullClassifier
 
 class IntegratedPhilosophicalAnalyzer:
     """
@@ -36,54 +39,43 @@ class IntegratedPhilosophicalAnalyzer:
     def __init__(self, 
                  lsa_components: int = 10,
                  coherence_window: int = 5,
-                 classification_features: List[str] = None):
+                 classification_features: List[str] = None,
+                 coherence_model_path: Optional[str] = None):
         """
         Initialize the integrated analyzer.
-        
+    
         Args:
-            lsa_components: Number of LSA components for coherence analysis
-            coherence_window: Window size for temporal coherence
-            classification_features: Features to use for convex hull classification
+            lsa_components: Number of LSA components for coherence analysis.
+            coherence_window: Window size for temporal coherence.
+            classification_features: Features to use for convex hull classification.
+            coherence_model_path: Optional path to a pre-trained coherence model.
         """
         self.lsa_components = lsa_components
         self.coherence_window = coherence_window
-        
-        # Default classification features from paper
+    
         self.classification_features = classification_features or [
             'first_order_coherence',
             'target_determiners_freq',
             'max_phrase_length',
             'avg_sentence_length'
         ]
+    
+        # Initialize all components at creation time
+        self.pos_analyzer = AdvancedPOSAnalyzer()
+        self.coherence_analyzer = EnhancedCoherenceAnalyzer(
+            n_components=self.lsa_components,
+            window_size=self.coherence_window
+        )
+        if coherence_model_path:
+            logger.info(f"Loading pre-trained coherence model from {coherence_model_path}")
+            self.coherence_analyzer.load_model(coherence_model_path)
+
+        self.classifier = ConvexHullClassifier(self.classification_features)
         
-        # Initialize component analyzers
-        self.pos_analyzer = None
-        self.coherence_analyzer = None
-        self.classifier = None
-        
-        # State tracking
         self.is_fitted = False
         self.feature_columns = []
         
-        logger.info("Integrated Philosophical Analyzer initialized (Phase 1A)")
-    
-    def _import_analyzers(self):
-        """Import component analyzers (lazy loading to avoid circular imports)."""
-        if self.pos_analyzer is None:
-            try:
-                # In a real implementation, these would be proper imports
-                # For now, we'll create simplified versions
-                self.pos_analyzer = SimpleAdvancedPOSAnalyzer()
-                self.coherence_analyzer = SimpleEnhancedCoherenceAnalyzer(
-                    n_components=self.lsa_components,
-                    window_size=self.coherence_window
-                )
-                self.classifier = SimpleConvexHullClassifier(self.classification_features)
-                
-                logger.info("Component analyzers initialized successfully")
-            except Exception as e:
-                logger.error(f"Failed to initialize analyzers: {e}")
-                raise
+        logger.info("IntegratedPhilosophicalAnalyzer initialized with all components.")
     
     def fit(self, texts: Dict[str, str], labels: Optional[Dict[str, int]] = None) -> 'IntegratedPhilosophicalAnalyzer':
         """
@@ -97,8 +89,6 @@ class IntegratedPhilosophicalAnalyzer:
             Self for method chaining
         """
         logger.info(f"Fitting integrated analyzer on {len(texts)} texts")
-        
-        self._import_analyzers()
         
         # Fit coherence analyzer first
         self.coherence_analyzer.fit(texts)
@@ -120,14 +110,15 @@ class IntegratedPhilosophicalAnalyzer:
                         features_data.append(result)
                         y_labels.append(labels[text_id])
             
-            if len(features_data) >= 4:  # Minimum for convex hull
+            y = np.array(y_labels)
+            # We need at least 2 data points and at least 2 classes for the classifier to be meaningful
+            if len(features_data) >= 2 and len(np.unique(y)) >= 2:
                 # Convert to feature matrix
                 feature_df = pd.DataFrame(features_data)
                 available_features = [f for f in self.classification_features if f in feature_df.columns]
-                
+
                 if len(available_features) >= 2:
                     X = feature_df[available_features].values
-                    y = np.array(y_labels)
                     
                     # Fit classifier
                     self.classifier.fit(X, y)
@@ -180,8 +171,6 @@ class IntegratedPhilosophicalAnalyzer:
             
             # 4. Classification (if classifier is available and fitted)
             if (not fit_mode and 
-                self.classifier is not None and 
-                hasattr(self.classifier, 'is_fitted') and 
                 self.classifier.is_fitted and 
                 self.feature_columns):
                 
@@ -509,121 +498,9 @@ class IntegratedPhilosophicalAnalyzer:
         return report_content
 
 
-# Simplified component analyzers for integration
-class SimpleAdvancedPOSAnalyzer:
-    """Simplified POS analyzer for integration."""
-    
-    def __init__(self):
-        self.target_determiners = {'that', 'what', 'whatever', 'which', 'whichever'}
-    
-    def full_pos_analysis(self, text: str, text_id: str) -> Dict[str, any]:
-        """Simplified POS analysis."""
-        # Basic implementation for integration
-        words = text.lower().split()
-        sentences = text.split('.')
-        
-        # Count target determiners
-        det_count = sum(1 for word in words if word.strip('.,!?') in self.target_determiners)
-        
-        # Basic metrics
-        total_words = len(words)
-        sentence_count = len([s for s in sentences if s.strip()])
-        
-        return {
-            'text_id': text_id,
-            'sentence_count': sentence_count,
-            'target_determiners_count': det_count,
-            'target_determiners_freq': det_count / total_words if total_words > 0 else 0.0,
-            'max_phrase_length': max([len(s.split()) for s in sentences if s.strip()] or [0]),
-            'avg_sentence_length': total_words / sentence_count if sentence_count > 0 else 0.0,
-            'total_words': total_words
-        }
-
-
-class SimpleEnhancedCoherenceAnalyzer:
-    """Simplified coherence analyzer for integration."""
-    
-    def __init__(self, n_components=10, window_size=5):
-        self.n_components = n_components
-        self.window_size = window_size
-        self.is_fitted = False
-    
-    def fit(self, texts: Dict[str, str]):
-        """Simplified fitting."""
-        self.is_fitted = True
-        return self
-    
-    def comprehensive_analysis(self, text: str, text_id: str) -> Dict[str, any]:
-        """Simplified coherence analysis."""
-        sentences = [s.strip() for s in text.split('.') if s.strip()]
-        
-        if len(sentences) < 2:
-            return {
-                'text_id': text_id,
-                'error': 'insufficient_sentences',
-                'sentence_count': len(sentences)
-            }
-        
-        # Simplified coherence calculation
-        # In reality, this would use proper LSA
-        coherence_scores = []
-        for i in range(len(sentences) - 1):
-            # Simple word overlap as coherence proxy
-            words1 = set(sentences[i].lower().split())
-            words2 = set(sentences[i + 1].lower().split())
-            overlap = len(words1 & words2) / len(words1 | words2) if words1 | words2 else 0
-            coherence_scores.append(overlap)
-        
-        first_order = np.mean(coherence_scores) if coherence_scores else 0.0
-        
-        # Second-order coherence (simplified)
-        if len(coherence_scores) > 1:
-            changes = [abs(coherence_scores[i+1] - coherence_scores[i]) 
-                      for i in range(len(coherence_scores) - 1)]
-            second_order = 1.0 - np.mean(changes) if changes else 0.0
-        else:
-            second_order = 0.0
-        
-        return {
-            'text_id': text_id,
-            'sentence_count': len(sentences),
-            'first_order_coherence': max(0.0, first_order),
-            'second_order_coherence': max(0.0, second_order),
-            'temporal_coherence': first_order,  # Simplified
-            'phrase_separated_coherence': first_order * 0.8,  # Simplified
-            'coherence_trend': 0.0,  # Simplified
-            'coherence_decay_rate': 0.1,  # Simplified
-            't_statistic': 1.0,  # Simplified
-            'p_value': 0.05,  # Simplified
-            'significant': first_order > 0.3
-        }
-
-
-class SimpleConvexHullClassifier:
-    """Simplified convex hull classifier for integration."""
-    
-    def __init__(self, features: List[str]):
-        self.features = features
-        self.is_fitted = False
-        self.threshold = 0.4  # Simple threshold
-    
-    def fit(self, X: np.ndarray, y: np.ndarray):
-        """Simplified fitting."""
-        self.is_fitted = True
-        return self
-    
-    def predict_single(self, point: np.ndarray) -> Tuple[int, float]:
-        """Simplified prediction."""
-        # Use first feature (coherence) as main predictor
-        coherence = point[0] if len(point) > 0 else 0.0
-        prediction = 1 if coherence > self.threshold else 0
-        confidence = abs(coherence - self.threshold) + 0.5
-        return prediction, min(confidence, 1.0)
-
-
 def test_integrated_analyzer():
     """Test the integrated analyzer."""
-    print("🔬 Testing Integrated Philosophical Analyzer (Phase 1A)")
+    print("🔬 Testing IntegratedPhilosophicalAnalyzer (Phase 1A)")
     print("=" * 60)
     
     # Test data
@@ -683,12 +560,13 @@ def test_integrated_analyzer():
             
             print(f"   📝 Sentences: {result['sentence_count']}")
             print(f"   🎯 First-order coherence: {result['first_order_coherence']:.3f}")
-            print(f"   🔄 Second-order coherence: {result['second_order_coherence']:.3f}")
+            print(f"   🔄 Second-order coherence: {result.get('second_order_coherence', 'N/A')}")
             print(f"   🎛️ Determiner frequency: {result['target_determiners_freq']:.4f}")
             print(f"   📏 Max phrase length: {result['max_phrase_length']}")
             
             if 'predicted_label' in result:
-                print(f"   🤖 Prediction: {result['predicted_label']} (confidence: {result['classification_confidence']:.3f})")
+                predicted_label_text = "Coherent" if result['predicted_label'] == 1 else "Incoherent"
+                print(f"   🤖 Prediction: {predicted_label_text} (confidence: {result['classification_confidence']:.3f})")
             
             if 'interpretation' in result:
                 interp = result['interpretation']
