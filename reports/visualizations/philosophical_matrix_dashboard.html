@@ -203,7 +203,7 @@
         
         <div class="stats-grid">
             <div class="stat-card">
-                <span class="stat-number">1.00%</span>
+                <span class="stat-number">3.25%</span>
                 <div>KANT :: DETERMINER USAGE FREQUENCY</div>
             </div>
             <div class="stat-card">
@@ -218,39 +218,55 @@
     </div>
 
     <script>
-        // Data from Phase 1A analysis
-        const philosopherData = {
-            'NIETZSCHE': {
-                first_order_coherence: 0.056,
-                second_order_coherence: 0.963,
-                determiner_frequency: 0.0251,
-                max_phrase_length: 563,
-                avg_sentence_length: 41.89,
-                syntactic_complexity: 85,
-                color: '#00FF00'  // Matrix green - el más complejo
-            },
-            'KANT': {
-                first_order_coherence: 0.107,
-                second_order_coherence: 0.947,
-                determiner_frequency: 0.0318,
-                max_phrase_length: 232,
-                avg_sentence_length: 34.96,
-                syntactic_complexity: 70,
-                color: '#FFFFFF'  // Blanco brillante - el más sistemático
-            },
-            'HUME': {
-                first_order_coherence: 0.069,
-                second_order_coherence: 0.953,
-                determiner_frequency: 0.0323,
-                max_phrase_length: 270,
-                avg_sentence_length: 29.32,
-                syntactic_complexity: 60,
-                color: '#888888'  // Gris medio - el más directo
+        let philosopherData = {};
+
+        async function loadDataAndInitialize() {
+            try {
+                const response = await fetch('dashboard_data.json?t=' + new Date().getTime());
+                const data = await response.json();
+                philosopherData = data.philosophers;
+                updateStats(data.stats);
+                updateLegend(philosopherData);
+                showRadarChart(); // Initial chart
+            } catch (error) {
+                console.error('Error loading or parsing philosopher data:', error);
+                document.getElementById('mainChart').innerHTML = '<p style="color:red; text-align:center;">Error loading data. Please check console.</p>';
             }
-        };
+        }
 
         function normalizeValue(value, min, max) {
             return (value - min) / (max - min);
+        }
+
+        function updateStats(stats) {
+            document.querySelector('.stats-grid').innerHTML = `
+                <div class="stat-card">
+                    <span class="stat-number">${(stats.highest_determiner_value * 100).toFixed(2)}%</span>
+                    <div>${stats.highest_determiner_use} :: DETERMINER USAGE</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">${stats.most_complex_value.toFixed(1)}</span>
+                    <div>${stats.most_complex_syntax} :: AVG. SENTENCE LENGTH</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">${stats.highest_second_order.toFixed(3)}</span>
+                    <div>${stats.highest_coherence} :: 2ND-ORDER COHERENCE</div>
+                </div>
+            `;
+        }
+
+        function updateLegend(philosophers) {
+            const legendContainer = document.querySelector('.philosopher-colors');
+            legendContainer.innerHTML = ''; // Clear existing legend
+            Object.entries(philosophers).forEach(([name, data]) => {
+                const legendItem = `
+                    <div class="philosopher-legend">
+                        <div class="color-dot" style="background: ${data.color};"></div>
+                        <span>${name}</span>
+                    </div>
+                `;
+                legendContainer.innerHTML += legendItem;
+            });
         }
 
         function showRadarChart() {
@@ -431,56 +447,56 @@
             document.querySelectorAll('.control-button').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
             
-            const philosophers = ['Nietzsche', 'Kant', 'Hume'];
+            const philosophers = Object.keys(philosopherData);
             const metrics = [
-                'Semantic Coherence',
-                'Style Stability', 
-                'Determiner Usage',
-                'Phrase Complexity',
-                'Sentence Length',
-                'Overall Complexity'
+                '1st Order Coherence',
+                '2nd Order Coherence',
+                'Determiner Freq.',
+                'Max Phrase Length',
+                'Avg Sentence Length',
+                'Syntactic Complexity'
             ];
             
-            const values = [
-                [0.056, 0.963, 0.0251, 0.95, 0.84, 0.85], // Nietzsche
-                [0.107, 0.947, 0.0318, 0.40, 0.70, 0.70], // Kant
-                [0.069, 0.953, 0.0323, 0.45, 0.59, 0.60]  // Hume
-            ];
+            const values = philosophers.map(p => {
+                const data = philosopherData[p];
+                return [
+                    data.first_order_coherence,
+                    data.second_order_coherence,
+                    data.determiner_frequency,
+                    data.max_phrase_length,
+                    data.avg_sentence_length,
+                    data.syntactic_complexity
+                ];
+            });
 
             const trace = {
                 z: values,
                 x: metrics,
                 y: philosophers,
                 type: 'heatmap',
-                colorscale: [
-                    [0, '#000000'],
-                    [0.25, '#333333'],
-                    [0.5, '#666666'],
-                    [0.75, '#999999'],
-                    [1, '#FFFFFF']
-                ],
+                colorscale: 'Greens',
                 showscale: true,
                 colorbar: {
-                    title: 'INTENSITY',
-                    titlefont: { color: '#00FF00', family: 'Courier New' },
-                    tickfont: { color: '#FFFFFF', family: 'Courier New' }
+                    title: 'Value',
+                    titlefont: { color: '#00FF00' },
+                    tickfont: { color: '#FFFFFF' }
                 }
             };
 
             const layout = {
                 title: {
-                    text: 'ANALYTICAL COMPLEXITY MATRIX<br><sub>NORMALIZED INTENSITY ACROSS MEASUREMENT DIMENSIONS</sub>',
+                    text: 'ANALYTICAL COMPLEXITY MATRIX',
                     font: { color: '#FFFFFF', size: 16, family: 'Courier New' }
                 },
                 xaxis: { 
-                    title: 'ANALYSIS DIMENSIONS',
-                    titlefont: { color: '#00FF00', family: 'Courier New' },
-                    tickfont: { color: '#FFFFFF', family: 'Courier New' }
+                    title: 'Analysis Dimensions',
+                    titlefont: { color: '#00FF00' },
+                    tickfont: { color: '#FFFFFF' }
                 },
                 yaxis: { 
-                    title: 'PHILOSOPHICAL AUTHORS',
-                    titlefont: { color: '#00FF00', family: 'Courier New' },
-                    tickfont: { color: '#FFFFFF', family: 'Courier New' }
+                    title: 'Philosophers',
+                    titlefont: { color: '#00FF00' },
+                    tickfont: { color: '#FFFFFF' }
                 },
                 paper_bgcolor: '#000000',
                 plot_bgcolor: '#000000',
@@ -490,8 +506,10 @@
             Plotly.newPlot('mainChart', [trace], layout, {responsive: true});
         }
 
-        // Initialize with radar chart
-        showRadarChart();
+        // Initial load
+        document.addEventListener('DOMContentLoaded', loadDataAndInitialize);
+
+
 
         // Add some interactive animations
         setTimeout(() => {
