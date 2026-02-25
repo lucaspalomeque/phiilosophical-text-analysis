@@ -143,8 +143,7 @@ class TestVisualizationGenerator:
         # Test that generate_all_visualizations handles errors gracefully
         viz_data = self.viz_gen.generate_all_visualizations(
             analysis_results=results,
-            texts=None,
-            save_html=True
+            texts=None
         )
         
         # Even with errors, it should return some data structure

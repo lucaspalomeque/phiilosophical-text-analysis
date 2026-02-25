@@ -99,11 +99,16 @@ dmypy.json
 data/raw/*.txt
 data/raw/*.pdf
 data/processed/
-data/results/
 *.log
 .DS_Store
 .vscode/
 .idea/
+
+# Stale root-level result files (canonical results in data/results/)
+/results_basic.csv
+/results_phase1a_complete.csv
+/test_results.csv
+/results.csv
 
 # NLTK data
 nltk_data/

@@ -12,7 +12,6 @@ from typing import Dict, List, Tuple, Optional, Any
 import numpy as np
 import pandas as pd
 from datetime import datetime
-import re
 from collections import Counter, defaultdict
 import networkx as nx
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -59,18 +58,16 @@ class VisualizationGenerator:
         
         logger.info(f"Visualization Generator initialized. Output: {self.output_dir}")
     
-    def generate_all_visualizations(self, 
+    def generate_all_visualizations(self,
                                  analysis_results: pd.DataFrame,
-                                 texts: Optional[Dict[str, str]] = None,
-                                 save_html: bool = True) -> Dict[str, Any]:
+                                 texts: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """
         Generate all visualizations from analysis results.
-        
+
         Args:
             analysis_results: DataFrame with integrated analysis results
             texts: Optional dictionary of original texts for semantic network
-            save_html: Whether to update HTML files with data
-            
+
         Returns:
             Dictionary with all visualization data
         """
@@ -110,22 +107,15 @@ class VisualizationGenerator:
             logger.error(f"Error generating semantic network: {e}")
             viz_data['network'] = None
         
-        # Save to HTML files if requested
+        # Save JSON data files (HTML loads via fetch)
         try:
-            # 4. Update HTML files with real data
-            if save_html:
-                logger.info("Updating HTML files...")
-                self.update_html_files(viz_data)
-                logger.info("✅ HTML files updated")
-        
-            # 5. Save JSON data files
             logger.info("Saving JSON data...")
             self.save_json_data(viz_data)
             logger.info("✅ JSON data saved")
-            
+
             logger.info("✅ All visualizations generated successfully")
             return viz_data
-            
+
         except Exception as e:
             logger.error(f"Error in visualization generation: {e}")
             return viz_data
@@ -184,41 +174,64 @@ class VisualizationGenerator:
     def generate_temporal_data(self, results: pd.DataFrame) -> Dict[str, Any]:
         """
         Generate temporal coherence visualization data.
-        
+
+        Uses real sliding-window coherence values computed by
+        EnhancedCoherenceAnalyzer.calculate_temporal_coherence() when
+        available in the results DataFrame (column ``window_coherences``).
+
         Args:
             results: Analysis results DataFrame
-            
+
         Returns:
             Temporal coherence data
         """
         logger.info("Generating temporal coherence data...")
-        
+
         temporal_data = {}
-        
+
         for _, row in results.iterrows():
             philosopher = self._extract_philosopher_name(row['text_id'])
-            
-            # Extract or simulate temporal coherence timeline
-            if 'coherence_timeline' in row:
+
+            # Prefer real sliding-window coherences from the analysis pipeline
+            full_resolution = None
+            if 'window_coherences' in row and row['window_coherences'] is not None:
+                raw = row['window_coherences']
+                # Handle both list and stringified-list from CSV round-trips
+                if isinstance(raw, str):
+                    import ast
+                    raw = ast.literal_eval(raw)
+                full_resolution = [float(c) for c in raw] if raw else None
+
+            if full_resolution:
+                # Downsample to a chart-friendly number of bins by
+                # averaging consecutive windows.  This preserves the
+                # real signal shape while keeping the JSON and chart fast.
+                max_points = 120
+                timeline = self._downsample_timeline(full_resolution, max_points)
+                logger.info(
+                    f"  {philosopher}: real window coherences "
+                    f"({len(full_resolution)} windows -> {len(timeline)} chart points)"
+                )
+            elif 'coherence_timeline' in row:
                 timeline = row['coherence_timeline']
             else:
-                # Generate from sentence-level data if available
                 timeline = self._generate_coherence_timeline(row)
-            
-            # Calculate temporal statistics
+
+            # Stats from full-resolution data when available
+            stats_source = full_resolution if full_resolution else timeline
             temporal_stats = {
                 'coherence_timeline': timeline,
-                'avg_coherence': np.mean(timeline),
-                'volatility': np.std(timeline),
-                'peak_coherence': np.max(timeline),
-                'min_coherence': np.min(timeline),
-                'coherent_segments': sum(1 for c in timeline if c > 0.6),
-                'trend': self._calculate_trend(timeline),
+                'avg_coherence': float(np.mean(stats_source)),
+                'volatility': float(np.std(stats_source)),
+                'peak_coherence': float(np.max(stats_source)),
+                'min_coherence': float(np.min(stats_source)),
+                'coherent_segments': sum(1 for c in stats_source if c > 0.6),
+                'trend': self._calculate_trend(stats_source),
                 'color': self.color_scheme['primary']
             }
-            
+
             temporal_data[philosopher.upper()] = temporal_stats
-        
+
         return temporal_data
     
     def generate_semantic_network(self, 
@@ -331,6 +344,26 @@ class VisualizationGenerator:
         
         return timeline
     
+    @staticmethod
+    def _downsample_timeline(values: List[float], max_points: int) -> List[float]:
+        """Downsample a timeline by averaging consecutive windows into bins.
+
+        If *values* already has fewer than *max_points* entries it is
+        returned unchanged.
+        """
+        n = len(values)
+        if n <= max_points:
+            return values
+
+        arr = np.array(values)
+        bin_size = n / max_points
+        downsampled = []
+        for i in range(max_points):
+            start = int(round(i * bin_size))
+            end = int(round((i + 1) * bin_size))
+            downsampled.append(float(np.mean(arr[start:end])))
+        return downsampled
+
     def _calculate_trend(self, timeline: List[float]) -> float:
         """Calculate trend in coherence timeline."""
         if len(timeline) < 2:
@@ -529,123 +562,55 @@ class VisualizationGenerator:
             }
         }
     
-    def update_html_files(self, viz_data: Dict[str, Any]):
-        """Update HTML files with real data."""
-        logger.info("Updating HTML files with real data...")
-        
-        # Update dashboard HTML
-        self._update_dashboard_html(viz_data['dashboard'])
-        
-        # Update temporal coherence HTML
-        self._update_temporal_html(viz_data['temporal'])
-        
-        # Update semantic network HTML
-        self._update_network_html(viz_data['network'])
-        
-        logger.info("HTML files updated successfully")
-    
-    def _update_dashboard_html(self, dashboard_data: Dict[str, Any]):
-        """Update dashboard HTML with real data."""
-        dashboard_path = self.output_dir / "philosophical_matrix_dashboard.html"
-        
-        if not dashboard_path.exists():
-            logger.warning(f"Dashboard HTML not found at {dashboard_path}")
-            return
-        
-        # Read HTML content
-        with open(dashboard_path, 'r', encoding='utf-8') as f:
-            html_content = f.read()
-        
-        # Create JavaScript data object
-        js_data = f"""
-        // Generated data from analysis - {dashboard_data['timestamp']}
-        const philosopherData = {json.dumps(dashboard_data['philosophers'], indent=8)};
-        const analysisStats = {json.dumps(dashboard_data['stats'], indent=8)};
-        """
-        
-        # Replace the data section in HTML
-        # Look for the philosopherData declaration and replace it
-        pattern = r'const philosopherData = \{[^}]+\};'
-        html_content = re.sub(pattern, js_data.strip(), html_content, flags=re.DOTALL)
-        
-        # Update statistics in stat cards
-        for philosopher, data in dashboard_data['philosophers'].items():
-            if philosopher == 'NIETZSCHE':
-                html_content = self._update_stat_value(html_content, 
-                    'NIETZSCHE :: MAXIMUM PHRASE LENGTH', 
-                    str(data['max_phrase_length']))
-            elif philosopher == 'KANT':
-                html_content = self._update_stat_value(html_content,
-                    'KANT :: DETERMINER USAGE FREQUENCY',
-                    f"{data['determiner_frequency']*100:.2f}%")
-        
-        # Save updated HTML
-        with open(dashboard_path, 'w', encoding='utf-8') as f:
-            f.write(html_content)
-        
-        logger.info("Dashboard HTML updated")
-    
-    def _update_temporal_html(self, temporal_data: Dict[str, Any]):
-        """Update temporal coherence HTML with real data."""
-        temporal_path = self.output_dir / "temporal_coherence_matrix.html"
-        
-        if not temporal_path.exists():
-            logger.warning(f"Temporal HTML not found at {temporal_path}")
-            return
-        
-        with open(temporal_path, 'r', encoding='utf-8') as f:
-            html_content = f.read()
-        
-        # Create JavaScript data object
-        js_data = f"""
-        // Generated temporal coherence data
-        const philosopherData = {json.dumps(temporal_data, indent=8)};
-        """
-        
-        # Replace the data section
-        pattern = r'const philosopherData = \{[^;]+\};'
-        html_content = re.sub(pattern, js_data.strip(), html_content, flags=re.DOTALL)
-        
-        # Save updated HTML
-        with open(temporal_path, 'w', encoding='utf-8') as f:
-            f.write(html_content)
-        
-        logger.info("Temporal coherence HTML updated")
-    
-    def _update_network_html(self, network_data: Dict[str, Any]):
-        """Update semantic network HTML with real data."""
-        network_path = self.output_dir / "semantic_network_matrix.html"
-        
-        if not network_path.exists():
-            logger.warning(f"Network HTML not found at {network_path}")
-            return
-        
-        with open(network_path, 'r', encoding='utf-8') as f:
-            html_content = f.read()
-        
-        # Create JavaScript data object
-        js_data = f"""
-        // Generated semantic network data
-        const networkData = {json.dumps(network_data, indent=8)};
-        """
-        
-        # Replace the data section
-        pattern = r'const networkData = \{[^;]+\};'
-        html_content = re.sub(pattern, js_data.strip(), html_content, flags=re.DOTALL)
-        
-        # Save updated HTML
-        with open(network_path, 'w', encoding='utf-8') as f:
-            f.write(html_content)
-        
-        logger.info("Semantic network HTML updated")
-    
-    def _update_stat_value(self, html_content: str, label: str, value: str) -> str:
-        """Update a specific statistic value in HTML."""
-        # Find the stat card with the label and update its value
-        pattern = f'<span class="stat-number">.*?</span>\\s*<div>{re.escape(label)}</div>'
-        replacement = f'<span class="stat-number">{value}</span>\n                <div>{label}</div>'
-        return re.sub(pattern, replacement, html_content, flags=re.DOTALL)
-    
+    def generate_placeholder_dashboard(self) -> Dict[str, Any]:
+        """Generate placeholder dashboard data."""
+        return {
+            'philosophers': {
+                'NIETZSCHE': {'name': 'NIETZSCHE', 'color': '#00FF00', 'coherence': 0.667, 'complexity': 0.7, 'work': 'Beyond Good And Evil', 'sentences': 1193, 'words': 382172},
+                'KANT': {'name': 'KANT', 'color': '#FFFFFF', 'coherence': 0.581, 'complexity': 0.8, 'work': 'Critique Of Pure Reason', 'sentences': 5624, 'words': 1265351},
+                'HUME': {'name': 'HUME', 'color': '#888888', 'coherence': 0.570, 'complexity': 0.6, 'work': 'Human Understanding', 'sentences': 1876, 'words': 342447}
+            },
+            'stats': {
+                'total_philosophers': 3,
+                'avg_coherence': 0.606,
+                'avg_complexity': 0.7,
+                'highest_coherence': 'NIETZSCHE',
+                'highest_coherence_value': 0.667,
+                'most_complex_syntax': 'KANT',
+                'most_complex_value': 0.8
+            },
+            'timestamp': pd.Timestamp.now().isoformat()
+        }
+
+    def generate_placeholder_temporal(self) -> Dict[str, Any]:
+        """Generate placeholder temporal data."""
+        return {
+            'NIETZSCHE': {
+                'coherence_timeline': [0.6 + 0.1 * np.sin(i * 0.1) for i in range(60)],
+                'avg_coherence': 0.667,
+                'volatility': 0.15,
+                'trend': 'increasing',
+                'peaks': [15, 35, 55],
+                'valleys': [5, 25, 45]
+            },
+            'KANT': {
+                'coherence_timeline': [0.58 + 0.08 * np.cos(i * 0.15) for i in range(60)],
+                'avg_coherence': 0.581,
+                'volatility': 0.12,
+                'trend': 'stable',
+                'peaks': [10, 30, 50],
+                'valleys': [20, 40]
+            },
+            'HUME': {
+                'coherence_timeline': [0.57 + 0.06 * np.sin(i * 0.2) for i in range(60)],
+                'avg_coherence': 0.570,
+                'volatility': 0.10,
+                'trend': 'decreasing',
+                'peaks': [12, 38],
+                'valleys': [2, 22, 42]
+            }
+        }
+
     def save_json_data(self, viz_data: Dict[str, Any]):
         """Save visualization data as JSON files."""
         logger.info("Saving JSON data files...")
@@ -724,9 +689,8 @@ def test_visualization_generator():
         # Generate visualizations
         print("\n📊 Generating visualizations...")
         viz_data = generator.generate_all_visualizations(
-            sample_results, 
-            sample_texts,
-            save_html=False  # Don't modify HTML files in test
+            sample_results,
+            sample_texts
         )
         
         # Display results
@@ -749,56 +713,6 @@ def test_visualization_generator():
         import traceback
         traceback.print_exc()
         return False
-
-def generate_placeholder_dashboard(self) -> Dict[str, Any]:
-    """Generate placeholder dashboard data."""
-    return {
-        'philosophers': {
-            'NIETZSCHE': {'name': 'NIETZSCHE', 'color': '#00FF00', 'coherence': 0.667, 'complexity': 0.7, 'work': 'Beyond Good And Evil', 'sentences': 1193, 'words': 382172},
-            'KANT': {'name': 'KANT', 'color': '#FFFFFF', 'coherence': 0.581, 'complexity': 0.8, 'work': 'Critique Of Pure Reason', 'sentences': 5624, 'words': 1265351},
-            'HUME': {'name': 'HUME', 'color': '#888888', 'coherence': 0.570, 'complexity': 0.6, 'work': 'Human Understanding', 'sentences': 1876, 'words': 342447}
-        },
-        'stats': {
-            'total_philosophers': 3,
-            'avg_coherence': 0.606,
-            'avg_complexity': 0.7,
-            'highest_coherence': 'NIETZSCHE',
-            'highest_coherence_value': 0.667,
-            'most_complex_syntax': 'KANT',
-            'most_complex_value': 0.8
-        },
-        'timestamp': pd.Timestamp.now().isoformat()
-    }
-
-def generate_placeholder_temporal(self) -> Dict[str, Any]:
-    """Generate placeholder temporal data."""
-    import numpy as np
-    return {
-        'NIETZSCHE': {
-            'coherence_timeline': [0.6 + 0.1 * np.sin(i * 0.1) for i in range(60)],
-            'avg_coherence': 0.667,
-            'volatility': 0.15,
-            'trend': 'increasing',
-            'peaks': [15, 35, 55],
-            'valleys': [5, 25, 45]
-        },
-        'KANT': {
-            'coherence_timeline': [0.58 + 0.08 * np.cos(i * 0.15) for i in range(60)],
-            'avg_coherence': 0.581,
-            'volatility': 0.12,
-            'trend': 'stable',
-            'peaks': [10, 30, 50],
-            'valleys': [20, 40]
-        },
-        'HUME': {
-            'coherence_timeline': [0.57 + 0.06 * np.sin(i * 0.2) for i in range(60)],
-            'avg_coherence': 0.570,
-            'volatility': 0.10,
-            'trend': 'decreasing',
-            'peaks': [12, 38],
-            'valleys': [2, 22, 42]
-        }
-    }
 
 if __name__ == "__main__":
     print("🚀 Philosophical Text Analysis - Visualization Generator")

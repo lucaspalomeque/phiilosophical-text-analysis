@@ -12,14 +12,14 @@ from scipy import stats
 from typing import Dict, List, Tuple
 import click
 
-from philosophical_analysis.core.analyzer import PhilosophicalAnalyzer
+from philosophical_analysis.core.integrated_analyzer import IntegratedPhilosophicalAnalyzer
 
 
 class PhilosophicalSchoolAnalyzer:
     """Analyzes patterns across philosophical schools."""
-    
+
     def __init__(self):
-        self.analyzer = PhilosophicalAnalyzer()
+        self.analyzer = IntegratedPhilosophicalAnalyzer()
         self.school_definitions = {
             "Rationalist": {
                 "philosophers": ["kant", "descartes", "spinoza"],

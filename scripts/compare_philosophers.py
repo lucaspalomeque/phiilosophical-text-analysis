@@ -14,14 +14,14 @@ import numpy as np
 from typing import Dict, List, Tuple
 import click
 
-from philosophical_analysis.core.analyzer import PhilosophicalAnalyzer
+from philosophical_analysis.core.integrated_analyzer import IntegratedPhilosophicalAnalyzer
 
 
 class PhilosopherComparator:
     """Analyzes and compares philosophical texts."""
-    
+
     def __init__(self):
-        self.analyzer = PhilosophicalAnalyzer()
+        self.analyzer = IntegratedPhilosophicalAnalyzer()
         self.results = None
         
         # Define philosophical schools for grouping

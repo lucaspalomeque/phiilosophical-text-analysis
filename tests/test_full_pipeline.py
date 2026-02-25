@@ -59,10 +59,9 @@ class TestFullAnalysisPipeline:
         # 4. Generate visualization data
         viz_data = self.viz_generator.generate_all_visualizations(
             analysis_results=results,
-            texts=texts,
-            save_html=True
+            texts=texts
         )
-        
+
         # 5. Check dashboard data structure
         assert 'dashboard' in viz_data
         dashboard = viz_data['dashboard']
@@ -117,8 +116,7 @@ class TestFullAnalysisPipeline:
             # 3. Generate visualization with edge cases
             viz_data = self.viz_generator.generate_all_visualizations(
                 analysis_results=results,
-                texts=texts,
-                save_html=True
+                texts=texts
             )
             
             # 4. Verify results were generated for all texts
