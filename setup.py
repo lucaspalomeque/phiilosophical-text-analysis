@@ -28,6 +28,7 @@ def get_version():
 dev_requirements = [
     "pytest>=6.2.0",
     "pytest-cov>=3.0.0",
+    "httpx>=0.24.0",
     "black>=22.0.0",
     "isort>=5.10.0",
     "flake8>=4.0.0",
@@ -81,6 +82,9 @@ setup(
         "philosophical_analysis": [
             "config/*.yaml",
             "data/reference/*.json",
+            "web/static/css/*.css",
+            "web/static/js/*.js",
+            "web/templates/*.html",
         ],
     },
     
@@ -107,8 +111,17 @@ setup(
         "docs": docs_requirements,
         "viz": viz_requirements,
         "notebook": notebook_requirements,
-        "web": ["streamlit>=1.16.0"],
-        "all": dev_requirements + docs_requirements + viz_requirements + notebook_requirements + ["streamlit>=1.16.0"],
+        "web": [
+            "fastapi>=0.100.0",
+            "uvicorn[standard]>=0.20.0",
+            "python-multipart>=0.0.5",
+            "jinja2>=3.1.0",
+            "aiofiles>=22.0.0",
+        ],
+        "all": dev_requirements + docs_requirements + viz_requirements + notebook_requirements + [
+            "fastapi>=0.100.0", "uvicorn[standard]>=0.20.0", "python-multipart>=0.0.5",
+            "jinja2>=3.1.0", "aiofiles>=22.0.0",
+        ],
     },
     
     # Command line interface

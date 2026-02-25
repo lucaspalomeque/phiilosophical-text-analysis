@@ -81,22 +81,23 @@ def add_visualization_commands(cli):
             sys.exit(1)
     
     @cli.command()
-    @click.option('--port', '-p', default=8080, help='Port to serve on')
-    @click.option('--directory', '-d', default='reports/visualizations')
-    def serve(port, directory):
-        """Serve visualizations in a local web server."""
-        
-        import http.server
-        import socketserver
-        import os
-        
-        os.chdir(directory)
-        Handler = http.server.SimpleHTTPRequestHandler
-        
-        click.echo(f"🌐 Serving visualizations at http://localhost:{port}")
-        click.echo("Press Ctrl+C to stop")
-        
-        with socketserver.TCPServer(("", port), Handler) as httpd:
-            httpd.serve_forever()
+    @click.option('--port', '-p', default=8000, help='Port to serve on')
+    @click.option('--host', '-h', default='127.0.0.1', help='Host to bind to')
+    def serve(port, host):
+        """Launch the web application."""
+        try:
+            import uvicorn
+        except ImportError:
+            click.echo("Install web dependencies: pip install 'philosophical-text-analysis[web]'", err=True)
+            sys.exit(1)
+
+        click.echo(f"Starting Philosophical Text Analysis at http://{host}:{port}")
+        uvicorn.run(
+            "philosophical_analysis.web.app:app",
+            host=host,
+            port=port,
+            reload=False,
+            log_level="info",
+        )
     
     return cli
