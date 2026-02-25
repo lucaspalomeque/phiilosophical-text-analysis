@@ -504,8 +504,8 @@ class TestSyntacticComplexity:
         }
 
         analyzer.fit(texts)
-        r_simple = analyzer.analyze_text("simple", texts["simple"])
-        r_complex = analyzer.analyze_text("complex", texts["complex"])
+        r_simple = analyzer.analyze_text(texts["simple"], "simple")
+        r_complex = analyzer.analyze_text(texts["complex"], "complex")
 
         # avg_sentence_length is the most reliable complexity proxy
         asl_simple = r_simple.get("avg_sentence_length", 0)
@@ -584,7 +584,7 @@ class TestEndToEndConsistency:
     def test_all_metrics_are_finite(self):
         analyzer = IntegratedPhilosophicalAnalyzer()
         analyzer.fit(PHILOSOPHY_CORPUS)
-        result = analyzer.analyze_text("epistemology", PHILOSOPHY_CORPUS["epistemology"])
+        result = analyzer.analyze_text(PHILOSOPHY_CORPUS["epistemology"], "epistemology")
 
         numeric_keys = [
             "first_order_coherence", "second_order_coherence",

@@ -23,11 +23,13 @@ def download_nltk_pos_data():
     """Download required NLTK data for POS analysis."""
     resources = [
         ('punkt', 'tokenizers/punkt'),
+        ('punkt_tab', 'tokenizers/punkt_tab'),
         ('averaged_perceptron_tagger', 'taggers/averaged_perceptron_tagger'),
+        ('averaged_perceptron_tagger_eng', 'taggers/averaged_perceptron_tagger_eng'),
         ('stopwords', 'corpora/stopwords'),
         ('wordnet', 'corpora/wordnet')
     ]
-    
+
     for resource, path in resources:
         try:
             nltk.data.find(path)
@@ -78,13 +80,61 @@ class AdvancedPOSAnalyzer:
         
         logger.info("Advanced POS Analyzer initialized with paper specifications")
     
+    def _word_tokenize_with_fallback(self, sentence: str) -> List[str]:
+        """Tokenize a sentence into words, with regex fallback if NLTK data is missing."""
+        try:
+            return word_tokenize(sentence)
+        except LookupError:
+            logger.warning("NLTK punkt data not available for word_tokenize, using regex fallback")
+            # Split on whitespace and punctuation boundaries
+            tokens = re.findall(r"\b\w+(?:[-']\w+)*\b|[^\w\s]", sentence)
+            return tokens
+
+    def _pos_tag_with_fallback(self, words: List[str]) -> List[Tuple[str, str]]:
+        """POS-tag a list of words, with a naive fallback if NLTK tagger data is missing."""
+        try:
+            return pos_tag(words)
+        except LookupError:
+            logger.warning("NLTK tagger data not available for pos_tag, using fallback heuristic")
+            # Simple heuristic: tag everything as NN (noun) with basic overrides
+            tagged = []
+            for word in words:
+                w = word.lower()
+                if w in {'the', 'a', 'an', 'this', 'that', 'these', 'those',
+                         'what', 'whatever', 'which', 'whichever'}:
+                    tagged.append((word, 'DT'))
+                elif w in {'is', 'are', 'was', 'were', 'be', 'been', 'being',
+                           'have', 'has', 'had', 'do', 'does', 'did',
+                           'will', 'would', 'shall', 'should', 'may', 'might',
+                           'can', 'could', 'must'}:
+                    tagged.append((word, 'VB'))
+                elif w in {'and', 'or', 'but', 'nor', 'yet', 'so', 'for'}:
+                    tagged.append((word, 'CC'))
+                elif w in {'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
+                           'from', 'about', 'into', 'through', 'during',
+                           'before', 'after', 'above', 'below', 'between'}:
+                    tagged.append((word, 'IN'))
+                elif w.endswith('ly'):
+                    tagged.append((word, 'RB'))
+                elif w.endswith('ing'):
+                    tagged.append((word, 'VBG'))
+                elif w.endswith('ed'):
+                    tagged.append((word, 'VBD'))
+                elif w.endswith('ness') or w.endswith('ment') or w.endswith('tion') or w.endswith('sion'):
+                    tagged.append((word, 'NN'))
+                elif w.endswith('ous') or w.endswith('ive') or w.endswith('ful') or w.endswith('al'):
+                    tagged.append((word, 'JJ'))
+                else:
+                    tagged.append((word, 'NN'))
+            return tagged
+
     def tokenize_and_tag(self, text: str) -> List[Tuple[List[Tuple[str, str]], str]]:
         """
         Tokenize text into sentences and perform POS tagging.
-        
+
         Args:
             text: Input text to analyze
-            
+
         Returns:
             List of (tagged_words, raw_sentence) tuples
         """
@@ -93,26 +143,26 @@ class AdvancedPOSAnalyzer:
         except LookupError:
             # Fallback sentence splitting
             sentences = [s.strip() for s in re.split(r'[.!?]+', text) if s.strip()]
-        
+
         tagged_sentences = []
-        
+
         for sentence in sentences:
             if len(sentence.strip()) < 10:  # Skip very short sentences
                 continue
-                
+
             try:
-                words = word_tokenize(sentence)
+                words = self._word_tokenize_with_fallback(sentence)
                 # Filter out pure punctuation
                 words = [w for w in words if w.isalnum() or w in ["'", "-"]]
-                
+
                 if len(words) >= 3:  # Minimum sentence length
-                    tagged_words = pos_tag(words)
+                    tagged_words = self._pos_tag_with_fallback(words)
                     tagged_sentences.append((tagged_words, sentence))
-                    
+
             except Exception as e:
                 logger.warning(f"Error tagging sentence: {e}")
                 continue
-        
+
         return tagged_sentences
     
     def extract_determiners(self, tagged_sentences: List[Tuple[List[Tuple[str, str]], str]]) -> Dict[str, int]:
