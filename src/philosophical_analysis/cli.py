@@ -4,12 +4,13 @@ Enhanced CLI with Phase 1A integration - maintains backward compatibility.
 This extends your existing CLI to support both original and advanced analysis modes.
 """
 
+import logging
 import click
 import sys
 import json
 from pathlib import Path
 from typing import Optional
-import pandas as pd  # ← ESTA ES LA LÍNEA QUE FALTABA
+import pandas as pd
 
 
 from .core.analyzer import PhilosophicalAnalyzer  # Your original analyzer
@@ -23,10 +24,11 @@ from . import __version__
 def cli(ctx, verbose):
     """
     Philosophical Text Analysis CLI - Enhanced with Phase 1A.
-    
+
     Analyze philosophical texts using psycholinguistic techniques.
     Now supports both original and advanced analysis modes.
     """
+    logging.basicConfig(level=logging.DEBUG if verbose else logging.WARNING)
     ctx.ensure_object(dict)
     ctx.obj['verbose'] = verbose
 

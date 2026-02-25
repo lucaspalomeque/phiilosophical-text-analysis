@@ -13,6 +13,8 @@ __copyright__ = "Copyright 2024, Philosophical Text Analysis Project"
 
 # Main imports
 from .core.analyzer import PhilosophicalAnalyzer
+from .core.integrated_analyzer import IntegratedPhilosophicalAnalyzer
+from .visualization import VisualizationGenerator
 
 # Version info tuple
 __version_info__ = tuple(map(int, __version__.split('.')))
@@ -20,6 +22,8 @@ __version_info__ = tuple(map(int, __version__.split('.')))
 # All public exports
 __all__ = [
     "PhilosophicalAnalyzer",
+    "IntegratedPhilosophicalAnalyzer",
+    "VisualizationGenerator",
     "__version__",
     "__author__",
     "__email__",

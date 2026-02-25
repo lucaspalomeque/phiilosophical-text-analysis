@@ -19,19 +19,12 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from ..core.integrated_analyzer import IntegratedPhilosophicalAnalyzer
 
-# Intentar importar load_config, si no existe, usar un valor por defecto
-try:
-    from ..core.config import load_config
-except ImportError:
-    def load_config():
-        return {}
+from .config import VIZ_CONFIG
 
 from .semantic_network import SemanticNetworkGenerator
 
 
 
-# Setup logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -322,7 +315,8 @@ class VisualizationGenerator:
             trend_component = trend * (i / segments)
             
             # Add variance
-            noise = np.random.normal(0, variance)
+            rng = np.random.default_rng(42 + i)
+            noise = rng.normal(0, variance)
             
             # Calculate coherence for this segment
             coherence = base_coherence + trend_component + noise
@@ -648,7 +642,7 @@ class VisualizationGenerator:
     def _update_stat_value(self, html_content: str, label: str, value: str) -> str:
         """Update a specific statistic value in HTML."""
         # Find the stat card with the label and update its value
-        pattern = f'<span class="stat-number">.*?</span>\s*<div>{re.escape(label)}</div>'
+        pattern = f'<span class="stat-number">.*?</span>\\s*<div>{re.escape(label)}</div>'
         replacement = f'<span class="stat-number">{value}</span>\n                <div>{label}</div>'
         return re.sub(pattern, replacement, html_content, flags=re.DOTALL)
     

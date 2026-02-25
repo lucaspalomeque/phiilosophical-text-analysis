@@ -15,10 +15,7 @@ from sklearn.model_selection import LeaveOneOut
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 import warnings
-warnings.filterwarnings('ignore')
 
-# Setup logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -198,8 +195,6 @@ class ConvexHullClassifier:
         if not self.hulls or all(h is None for h in self.hulls.values()):
             # This is a warning because in cross-validation, one fold might fail but others succeed.
             warnings.warn("Could not create any valid convex hulls.", UserWarning)
-        
-        self.is_fitted = True
         
         self.is_fitted = True
         logger.info("Convex hull classifier fitted successfully")

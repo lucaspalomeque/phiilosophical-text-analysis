@@ -6,7 +6,7 @@ This module implements the exact determiners and phrase analysis from the paper:
 """
 
 import logging
-from typing import Dict, List, Tuple, Set, Optional
+from typing import Any, Dict, List, Tuple, Set, Optional
 import numpy as np
 import pandas as pd
 import nltk
@@ -16,8 +16,6 @@ from nltk.corpus import stopwords
 from collections import Counter, defaultdict
 import re
 
-# Setup logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Download required NLTK data
@@ -35,13 +33,19 @@ def download_nltk_pos_data():
             nltk.data.find(path)
         except LookupError:
             try:
-                print(f"Downloading {resource}...")
+                logger.info(f"Downloading {resource}...")
                 nltk.download(resource, quiet=True)
             except Exception as e:
-                print(f"Failed to download {resource}: {e}")
+                logger.warning(f"Failed to download {resource}: {e}")
 
-# Download at import
-download_nltk_pos_data()
+_nltk_pos_data_downloaded = False
+
+def _ensure_nltk_pos_data():
+    global _nltk_pos_data_downloaded
+    if _nltk_pos_data_downloaded:
+        return
+    download_nltk_pos_data()
+    _nltk_pos_data_downloaded = True
 
 
 class AdvancedPOSAnalyzer:
@@ -53,7 +57,8 @@ class AdvancedPOSAnalyzer:
     
     def __init__(self):
         """Initialize the POS analyzer with paper-specific settings."""
-        
+        _ensure_nltk_pos_data()
+
         # Exact determiners from Bedi et al. (2015) paper
         self.target_determiners = {
             'that', 'what', 'whatever', 'which', 'whichever'
@@ -254,7 +259,7 @@ class AdvancedPOSAnalyzer:
             'most_common_pos': pos_diversity.most_common(5) if pos_diversity else []
         }
     
-    def full_pos_analysis(self, text: str, text_id: str = "") -> Dict[str, any]:
+    def full_pos_analysis(self, text: str, text_id: str = "") -> Dict[str, Any]:
         """
         Perform complete POS-based analysis following paper specifications.
         
@@ -327,7 +332,7 @@ class AdvancedPOSAnalyzer:
         logger.info(f"POS analysis completed for {text_id}")
         return result
     
-    def compare_with_baseline(self, results: Dict[str, any]) -> Dict[str, str]:
+    def compare_with_baseline(self, results: Dict[str, Any]) -> Dict[str, str]:
         """
         Compare results with baseline patterns from the paper.
         

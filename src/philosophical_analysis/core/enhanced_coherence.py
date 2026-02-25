@@ -6,7 +6,7 @@ including phrase-separation analysis and temporal coherence patterns.
 """
 
 import logging
-from typing import Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Tuple, Optional
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -19,8 +19,6 @@ import re
 import joblib
 from pathlib import Path
 
-# Setup logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -206,9 +204,9 @@ class EnhancedCoherenceAnalyzer:
             try:
                 vec = self.get_sentence_vector(sentence)
                 vectors.append(vec)
-            except:
+            except Exception:
                 continue
-        
+
         if len(vectors) < 2:
             return {
                 'first_order_coherence': 0.0,
@@ -224,9 +222,9 @@ class EnhancedCoherenceAnalyzer:
                 similarity = cosine_similarity([vectors[i]], [vectors[i + 1]])[0][0]
                 if not np.isnan(similarity) and not np.isinf(similarity):
                     coherence_scores.append(similarity)
-            except:
+            except Exception:
                 continue
-        
+
         if not coherence_scores:
             return {
                 'first_order_coherence': 0.0,
@@ -265,9 +263,9 @@ class EnhancedCoherenceAnalyzer:
             try:
                 vec = self.get_sentence_vector(sentence)
                 vectors.append(vec)
-            except:
+            except Exception:
                 continue
-        
+
         if len(vectors) < 3:
             return {
                 'second_order_coherence': 0.0,
@@ -282,7 +280,7 @@ class EnhancedCoherenceAnalyzer:
                 similarity = cosine_similarity([vectors[i]], [vectors[i + 1]])[0][0]
                 if not np.isnan(similarity) and not np.isinf(similarity):
                     first_order_scores.append(similarity)
-            except:
+            except Exception:
                 continue
         
         if len(first_order_scores) < 2:
@@ -383,9 +381,9 @@ class EnhancedCoherenceAnalyzer:
             try:
                 vec = self.get_sentence_vector(sentence)
                 vectors.append(vec)
-            except:
+            except Exception:
                 continue
-        
+
         if len(vectors) < 4:
             return {
                 'phrase_separated_coherence': 0.0,
@@ -404,7 +402,7 @@ class EnhancedCoherenceAnalyzer:
                     similarity = cosine_similarity([vectors[i]], [vectors[i + distance]])[0][0]
                     if not np.isnan(similarity) and not np.isinf(similarity):
                         coherences_at_distance.append(similarity)
-                except:
+                except Exception:
                     continue
             
             if coherences_at_distance:
@@ -431,7 +429,7 @@ class EnhancedCoherenceAnalyzer:
                 log_coherences = np.log(np.maximum(coherences, 1e-10))
                 slope, _, _, _, _ = stats.linregress(distances, log_coherences)
                 coherence_decay_rate = -slope  # Positive value indicates decay
-            except:
+            except Exception:
                 coherence_decay_rate = 0.0
         else:
             coherence_decay_rate = 0.0
@@ -481,7 +479,7 @@ class EnhancedCoherenceAnalyzer:
             'significant': bool(significant)
         }
     
-    def comprehensive_analysis(self, text: str, text_id: str = "") -> Dict[str, any]:
+    def comprehensive_analysis(self, text: str, text_id: str = "") -> Dict[str, Any]:
         """
         Perform comprehensive enhanced coherence analysis.
         
@@ -520,17 +518,17 @@ class EnhancedCoherenceAnalyzer:
             try:
                 vec = self.get_sentence_vector(sentence)
                 vectors.append(vec)
-            except:
+            except Exception:
                 continue
-        
+
         for i in range(len(vectors) - 1):
             try:
                 similarity = cosine_similarity([vectors[i]], [vectors[i + 1]])[0][0]
                 if not np.isnan(similarity) and not np.isinf(similarity):
                     coherence_scores.append(similarity)
-            except:
+            except Exception:
                 continue
-        
+
         statistical_results = self.statistical_significance_test(coherence_scores)
         
         # Combine all results

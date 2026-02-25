@@ -9,15 +9,11 @@ This module integrates all Phase 1A components following Bedi et al. (2015):
 """
 
 import logging
-from typing import Dict, List, Tuple, Optional, Union
+from typing import Any, Dict, List, Tuple, Optional, Union
 import numpy as np
 import pandas as pd
 from pathlib import Path
-import warnings
-warnings.filterwarnings('ignore')
 
-# Setup logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 from .pos_analyzer import AdvancedPOSAnalyzer
@@ -135,7 +131,7 @@ class IntegratedPhilosophicalAnalyzer:
         
         return self
     
-    def _analyze_single_text(self, text: str, text_id: str, fit_mode: bool = False) -> Dict[str, any]:
+    def _analyze_single_text(self, text: str, text_id: str, fit_mode: bool = False) -> Dict[str, Any]:
         """
         Analyze a single text with all components.
         
@@ -199,7 +195,7 @@ class IntegratedPhilosophicalAnalyzer:
         
         return result
     
-    def _interpret_results(self, results: Dict[str, any]) -> Dict[str, str]:
+    def _interpret_results(self, results: Dict[str, Any]) -> Dict[str, str]:
         """
         Interpret analysis results based on paper thresholds.
         
@@ -261,7 +257,7 @@ class IntegratedPhilosophicalAnalyzer:
         
         return interpretations
     
-    def analyze_text(self, text: str, text_id: str = "") -> Dict[str, any]:
+    def analyze_text(self, text: str, text_id: str = "") -> Dict[str, Any]:
         """
         Analyze a single text with full integrated analysis.
         
