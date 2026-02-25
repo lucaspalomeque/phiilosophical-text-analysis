@@ -322,27 +322,29 @@ class EnhancedCoherenceAnalyzer:
             return {
                 'temporal_coherence': 0.0,
                 'coherence_trend': 0.0,
-                'local_coherence_variance': 0.0
+                'local_coherence_variance': 0.0,
+                'window_coherences': []
             }
         
         # Calculate coherence in sliding windows
         window_coherences = []
-        
+
         for i in range(len(sentences) - self.window_size + 1):
             window_sentences = sentences[i:i + self.window_size]
             window_metrics = self.calculate_basic_coherence(window_sentences)
             window_coherences.append(window_metrics['first_order_coherence'])
-        
+
         if not window_coherences:
             return {
                 'temporal_coherence': 0.0,
                 'coherence_trend': 0.0,
-                'local_coherence_variance': 0.0
+                'local_coherence_variance': 0.0,
+                'window_coherences': []
             }
-        
+
         # Calculate temporal metrics
         temporal_coherence = np.mean(window_coherences)
-        
+
         # Trend analysis: correlation with position
         if len(window_coherences) > 2:
             positions = np.arange(len(window_coherences))
@@ -350,13 +352,14 @@ class EnhancedCoherenceAnalyzer:
             coherence_trend = correlation if not np.isnan(correlation) else 0.0
         else:
             coherence_trend = 0.0
-        
+
         local_coherence_variance = np.var(window_coherences)
-        
+
         return {
             'temporal_coherence': float(temporal_coherence),
             'coherence_trend': float(coherence_trend),
-            'local_coherence_variance': float(local_coherence_variance)
+            'local_coherence_variance': float(local_coherence_variance),
+            'window_coherences': [float(c) for c in window_coherences]
         }
     
     def calculate_phrase_separation_coherence(self, sentences: List[str]) -> Dict[str, float]:
