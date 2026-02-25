@@ -82,24 +82,24 @@ def mock_nltk_data(tmp_path_factory):
     nltk_data_dir = tmp_path_factory.mktemp("nltk_data")
     os.environ['NLTK_DATA'] = str(nltk_data_dir)
 
+    # Also prepend to nltk.data.path so already-imported modules find it
+    nltk.data.path.insert(0, str(nltk_data_dir))
+
     # List of required NLTK packages
-    required_packages = ['punkt', 'averaged_perceptron_tagger', 'wordnet']
-    
-    # Download each required package
+    required_packages = ['punkt', 'punkt_tab', 'averaged_perceptron_tagger', 'averaged_perceptron_tagger_eng', 'wordnet']
+
+    # Always download to the temp dir so NLTK_DATA override works correctly
     for package in required_packages:
         try:
-            # Check if already available (e.g., in a cache)
-            nltk.data.find(f"tokenizers/{package}")
-        except LookupError:
-            try:
-                nltk.download(package, download_dir=str(nltk_data_dir), quiet=True)
-            except Exception as e:
-                pytest.fail(f"Failed to download NLTK package {package}: {e}")
+            nltk.download(package, download_dir=str(nltk_data_dir), quiet=True)
+        except Exception as e:
+            pytest.fail(f"Failed to download NLTK package {package}: {e}")
 
     # Yield control to the tests
     yield
 
-    # Teardown: Unset the environment variable
+    # Teardown: Unset the environment variable and restore path
     del os.environ['NLTK_DATA']
+    nltk.data.path.remove(str(nltk_data_dir))
 
     
