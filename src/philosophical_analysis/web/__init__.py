@@ -1,7 +1,7 @@
 """
-Philosophical Text Analysis - Web Interface module
+Philosophical Text Analysis — Web Interface module
 
-This module contains the web interface for the philosophical text analysis tools.
+FastAPI-based SPA with Apple-inspired glassmorphism design.
 """
 
-__version__ = '0.1.0'
+__version__ = '1.0.0'

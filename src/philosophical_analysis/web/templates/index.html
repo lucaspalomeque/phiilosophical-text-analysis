@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#000000">
+    <title>Philosophical Text Analysis</title>
+    <meta name="description" content="Analyze philosophical texts using advanced psycholinguistic techniques">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23C9A96E'/><text x='16' y='22' text-anchor='middle' font-size='18' fill='%23000'>P</text></svg>">
+
+    <!-- Preconnect to CDN -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+
+    <!-- Design system -->
+    <link rel="stylesheet" href="/static/css/design-system.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+    <link rel="stylesheet" href="/static/css/charts.css">
+    <link rel="stylesheet" href="/static/css/animations.css">
+
+    <!-- Plotly.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js" defer></script>
+    <!-- D3.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" defer></script>
+</head>
+<body>
+    <!-- Skip to main content (accessibility) -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Subtle background gradient -->
+    <div class="bg-gradient" aria-hidden="true"></div>
+
+    <!-- Mobile header -->
+    <header class="mobile-header" role="banner">
+        <button class="hamburger" onclick="toggleSidebar()" aria-label="Toggle navigation" aria-expanded="false" aria-controls="sidebar">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </button>
+        <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">Philosophical Analysis</span>
+        <div style="width: 40px;"></div>
+    </header>
+
+    <!-- Sidebar overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()" aria-hidden="true"></div>
+
+    <!-- App shell -->
+    <div class="app-shell">
+        <!-- Sidebar navigation -->
+        <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+            <div class="sidebar-header">
+                <a href="#/upload" class="sidebar-brand" aria-label="Philosophical Text Analysis — Home">
+                    <div class="sidebar-logo" aria-hidden="true">P</div>
+                    <div>
+                        <div class="sidebar-title">Philosophical</div>
+                        <div class="sidebar-subtitle">Text Analysis</div>
+                    </div>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Page navigation">
+                <div class="nav-section-label" id="nav-label-analysis">Analysis</div>
+
+                <a class="nav-item" data-view="upload" href="#/upload" aria-describedby="nav-label-analysis">
+                    <span class="nav-item-icon" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                            <path d="M9 2v10M5 6l4-4 4 4M3 13v1a2 2 0 002 2h8a2 2 0 002-2v-1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    Upload & analyze
+                </a>
+
+                <div class="nav-section-label" id="nav-label-results" style="margin-top: var(--space-4);">Results</div>
+
+                <a class="nav-item" data-view="dashboard" href="#/dashboard" aria-describedby="nav-label-results">
+                    <span class="nav-item-icon" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                            <rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/>
+                            <rect x="11" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/>
+                            <rect x="2" y="11" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/>
+                            <rect x="11" y="11" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/>
+                        </svg>
+                    </span>
+                    Dashboard
+                </a>
+
+                <a class="nav-item" data-view="temporal" href="#/temporal" aria-describedby="nav-label-results">
+                    <span class="nav-item-icon" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                            <polyline points="2,14 5,8 8,11 11,4 14,9 16,6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        </svg>
+                    </span>
+                    Temporal analysis
+                </a>
+
+                <a class="nav-item" data-view="network" href="#/network" aria-describedby="nav-label-results">
+                    <span class="nav-item-icon" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                            <circle cx="9" cy="5" r="2" stroke="currentColor" stroke-width="1.3"/>
+                            <circle cx="4" cy="13" r="2" stroke="currentColor" stroke-width="1.3"/>
+                            <circle cx="14" cy="13" r="2" stroke="currentColor" stroke-width="1.3"/>
+                            <line x1="9" y1="7" x2="5" y2="11" stroke="currentColor" stroke-width="1.3"/>
+                            <line x1="9" y1="7" x2="13" y2="11" stroke="currentColor" stroke-width="1.3"/>
+                            <line x1="6" y1="13" x2="12" y2="13" stroke="currentColor" stroke-width="1.3"/>
+                        </svg>
+                    </span>
+                    Semantic network
+                </a>
+
+                <a class="nav-item" data-view="compare" href="#/compare" aria-describedby="nav-label-results">
+                    <span class="nav-item-icon" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                            <rect x="2" y="10" width="3" height="6" rx="0.5" stroke="currentColor" stroke-width="1.3"/>
+                            <rect x="7.5" y="6" width="3" height="10" rx="0.5" stroke="currentColor" stroke-width="1.3"/>
+                            <rect x="13" y="2" width="3" height="14" rx="0.5" stroke="currentColor" stroke-width="1.3"/>
+                        </svg>
+                    </span>
+                    Compare
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-footer-text">Psycholinguistic analysis powered by LSA</div>
+            </div>
+        </aside>
+
+        <!-- Main content area -->
+        <main class="main-content" id="main-content" role="main" aria-live="polite">
+            <!-- Views are rendered here by the router -->
+        </main>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true"></div>
+
+    <!-- Analysis overlay -->
+    <div class="analysis-overlay" id="analysis-overlay" role="dialog" aria-modal="true" aria-label="Analysis in progress">
+        <div class="analysis-overlay-content">
+            <div class="spinner spinner-lg" aria-hidden="true"></div>
+            <div class="analysis-overlay-title">Analyzing texts</div>
+            <div class="analysis-overlay-status" id="analysis-status" aria-live="polite">Preparing analysis pipeline...</div>
+            <div style="width: 200px; margin-top: var(--space-5);">
+                <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar-fill" id="analysis-progress" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core application scripts -->
+    <script src="/static/js/api-client.js" defer></script>
+    <script src="/static/js/app.js" defer></script>
+</body>
+</html>

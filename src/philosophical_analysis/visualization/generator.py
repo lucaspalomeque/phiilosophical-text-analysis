@@ -48,12 +48,13 @@ class VisualizationGenerator:
         # Visualization templates
         self.templates_dir = self.output_dir
         
-        # Color scheme matching the Matrix theme
+        # Color scheme — Apple-inspired gold palette
         self.color_scheme = {
-            'primary': '#00FF00',      # Matrix green
-            'secondary': '#FFFFFF',     # White
-            'tertiary': '#888888',      # Gray
+            'primary': '#C9A96E',       # Brushed gold
+            'secondary': '#E5E5E7',     # Light grey
+            'tertiary': '#8E8E93',      # Medium grey
             'background': '#000000',    # Black
+            'accent': '#D4BA85',        # Light gold
         }
         
         logger.info(f"Visualization Generator initialized. Output: {self.output_dir}")

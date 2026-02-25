@@ -32,7 +32,11 @@ tqdm>=4.62.0
 click>=8.0.0
 
 # Web interface
-streamlit>=1.16.0
+fastapi>=0.100.0
+uvicorn[standard]>=0.20.0
+python-multipart>=0.0.5
+jinja2>=3.1.0
+aiofiles>=22.0.0
 
 # Development dependencies (install with pip install -e .[dev])
 # pytest>=6.2.0

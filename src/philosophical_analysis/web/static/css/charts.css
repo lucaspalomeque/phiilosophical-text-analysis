@@ -1,0 +1,292 @@
+/* ==========================================================================
+   Charts — Container styling and Plotly/D3 overrides
+   ========================================================================== */
+
+/* --- Chart container --- */
+
+.chart-container {
+    position: relative;
+    min-height: 400px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.chart-container-lg {
+    min-height: 500px;
+}
+
+.chart-container-xl {
+    min-height: 600px;
+}
+
+/* --- Plotly overrides --- */
+
+.chart-container .plotly .modebar {
+    display: none !important;
+}
+
+.chart-container .plotly .main-svg {
+    border-radius: var(--radius-lg);
+}
+
+/* --- Chart controls --- */
+
+.chart-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+}
+
+.chart-controls-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.chart-controls-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+/* --- Network graph --- */
+
+.network-container {
+    position: relative;
+    width: 100%;
+    min-height: 600px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.network-container svg {
+    width: 100%;
+    height: 100%;
+}
+
+.network-node {
+    cursor: pointer;
+    transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.network-node circle {
+    stroke: rgba(201, 169, 110, 0.6);
+    stroke-width: 1.5px;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.network-node:hover circle {
+    stroke: var(--color-gold);
+    stroke-width: 2.5px;
+    filter: drop-shadow(0 0 8px rgba(201, 169, 110, 0.4));
+}
+
+.network-node text {
+    font-family: var(--font-family);
+    font-size: 11px;
+    font-weight: var(--weight-regular);
+    fill: var(--color-text-secondary);
+    pointer-events: none;
+}
+
+.network-link {
+    stroke: rgba(201, 169, 110, 0.15);
+    stroke-width: 1px;
+    transition: stroke-opacity var(--duration-fast) var(--ease-out);
+}
+
+.network-link.highlighted {
+    stroke: var(--color-gold);
+    stroke-opacity: 0.6;
+    stroke-width: 2px;
+}
+
+/* --- Three-column network layout --- */
+
+.network-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr 280px;
+    gap: var(--space-4);
+    min-height: 600px;
+}
+
+.network-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.network-main {
+    position: relative;
+}
+
+.network-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+@media (max-width: 1200px) {
+    .network-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .network-sidebar {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}
+
+/* --- Chart loading state --- */
+
+.chart-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: var(--radius-lg);
+    z-index: 10;
+}
+
+.chart-loading-text {
+    margin-top: var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--color-text-tertiary);
+}
+
+/* --- Stats row (below charts) --- */
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--space-4);
+}
+
+/* --- Segment list --- */
+
+.segment-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.segment-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--color-gold-dim);
+    background: var(--glass-bg);
+    font-size: var(--text-sm);
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.segment-item:hover {
+    background: var(--glass-bg-hover);
+    border-left-color: var(--color-gold);
+}
+
+.segment-value {
+    font-family: var(--font-mono);
+    color: var(--color-gold);
+    font-size: var(--text-sm);
+    min-width: 50px;
+}
+
+.segment-label {
+    color: var(--color-text-secondary);
+}
+
+/* --- Filter panel (network) --- */
+
+.filter-section {
+    margin-bottom: var(--space-4);
+}
+
+.filter-title {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-tertiary);
+    letter-spacing: var(--tracking-wider);
+    text-transform: uppercase;
+    margin-bottom: var(--space-3);
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+}
+
+.checkbox-item input[type="checkbox"] {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--glass-border);
+    border-radius: 4px;
+    background: var(--glass-bg);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    position: relative;
+}
+
+.checkbox-item input[type="checkbox"]:checked {
+    background: var(--color-gold);
+    border-color: var(--color-gold);
+}
+
+.checkbox-item input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    width: 4px;
+    height: 8px;
+    border: solid var(--color-bg);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* --- Responsive chart sizing --- */
+
+@media (max-width: 640px) {
+    .chart-container {
+        min-height: 300px;
+    }
+
+    .chart-container-lg {
+        min-height: 350px;
+    }
+
+    .chart-container-xl {
+        min-height: 400px;
+    }
+
+    .network-container {
+        min-height: 400px;
+    }
+
+    .chart-controls {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

@@ -152,12 +152,20 @@ class IntegratedPhilosophicalAnalyzer:
             # 1. Advanced POS Analysis
             pos_results = self.pos_analyzer.full_pos_analysis(text, text_id)
             if 'error' in pos_results:
+                logger.warning(
+                    f"POS analysis failed for '{text_id}': {pos_results['error']}. "
+                    f"Returning partial results with zeroed POS metrics."
+                )
                 result.update(pos_results)
                 return result
-            
+
             # 2. Enhanced Coherence Analysis
             coherence_results = self.coherence_analyzer.comprehensive_analysis(text, text_id)
             if 'error' in coherence_results:
+                logger.warning(
+                    f"Coherence analysis failed for '{text_id}': {coherence_results['error']}. "
+                    f"Returning partial results with zeroed coherence metrics."
+                )
                 result.update(coherence_results)
                 return result
             
