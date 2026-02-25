@@ -93,6 +93,7 @@ setup(
         "nltk>=3.7",
         "matplotlib>=3.5.0",
         "seaborn>=0.11.0",
+        "networkx>=2.6.0",
         "requests>=2.26.0",
         "beautifulsoup4>=4.10.0",
         "pyyaml>=6.0",
@@ -106,7 +107,8 @@ setup(
         "docs": docs_requirements,
         "viz": viz_requirements,
         "notebook": notebook_requirements,
-        "all": dev_requirements + docs_requirements + viz_requirements + notebook_requirements,
+        "web": ["streamlit>=1.16.0"],
+        "all": dev_requirements + docs_requirements + viz_requirements + notebook_requirements + ["streamlit>=1.16.0"],
     },
     
     # Command line interface

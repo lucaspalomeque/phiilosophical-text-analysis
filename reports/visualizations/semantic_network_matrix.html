@@ -1,0 +1,4021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semantic Network Analysis - Matrix Interface</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        body {
+            font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+            margin: 0;
+            padding: 20px;
+            background-color: #000000;
+            min-height: 100vh;
+            color: #00FF00;
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(0,255,0,0.15) 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: #000000;
+            border: 2px solid #00FF00;
+            border-radius: 0;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            color: #FFFFFF;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+        }
+        
+        .subtitle {
+            text-align: center;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: #FFFFFF;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        
+        .interface-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr 250px;
+            gap: 20px;
+            height: 80vh;
+        }
+        
+        .control-panel {
+            background: #000000;
+            border: 1px solid #00FF00;
+            padding: 15px;
+            overflow-y: auto;
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.1);
+        }
+        
+        .main-network {
+            background: #000000;
+            border: 1px solid #00FF00;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 15px rgba(0, 255, 0, 0.1);
+        }
+        
+        .info-panel {
+            background: #000000;
+            border: 1px solid #00FF00;
+            padding: 15px;
+            overflow-y: auto;
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.1);
+        }
+        
+        .panel-title {
+            color: #00FF00;
+            font-size: 1em;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #00FF00;
+            padding-bottom: 5px;
+        }
+        
+        .filter-group {
+            margin-bottom: 20px;
+        }
+        
+        .filter-label {
+            color: #FFFFFF;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .philosopher-filter {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .filter-checkbox:hover {
+            background-color: rgba(0, 255, 0, 0.1);
+        }
+        
+        .filter-checkbox input {
+            margin: 0;
+        }
+        
+        .filter-checkbox label {
+            color: #FFFFFF;
+            font-size: 0.8em;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .concept-strength {
+            margin-bottom: 15px;
+        }
+        
+        .strength-slider {
+            width: 100%;
+            margin-top: 8px;
+            background: #333;
+            height: 6px;
+            outline: none;
+            border-radius: 0;
+        }
+        
+        .network-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .control-btn {
+            background: #000000;
+            border: 1px solid #00FF00;
+            color: #FFFFFF;
+            padding: 8px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            background: #00FF00;
+            color: #000000;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+        }
+        
+        .node-info {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #333;
+        }
+        
+        .node-title {
+            color: #00FF00;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .node-details {
+            color: #FFFFFF;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+        
+        .connection-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .connection-item {
+            color: #FFFFFF;
+            font-size: 0.8em;
+            padding: 3px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .connection-strength {
+            color: #00FF00;
+            float: right;
+        }
+        
+        .stats-display {
+            background: #000000;
+            border: 1px solid #00FF00;
+            padding: 10px;
+            margin-top: 15px;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.85em;
+        }
+        
+        .stat-label {
+            color: #FFFFFF;
+        }
+        
+        .stat-value {
+            color: #00FF00;
+        }
+        
+        #network-svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .node:hover {
+            filter: brightness(1.5);
+        }
+        
+        .link {
+            stroke-opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+        
+        .node-label {
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            fill: #FFFFFF;
+            text-anchor: middle;
+            pointer-events: none;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00FF00;
+            font-size: 1.2em;
+            z-index: 1000;
+        }
+        
+        .matrix-scanner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00FF00, transparent);
+            animation: scan 3s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(500px); }
+        }
+        
+        .legend {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00FF00;
+            padding: 10px;
+            font-size: 0.8em;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SEMANTIC NETWORK ANALYSIS</h1>
+        <p class="subtitle">PHASE 2A :: CONCEPTUAL MAPPING INTERFACE</p>
+        
+        <div class="interface-grid">
+            <div class="control-panel">
+                <div class="panel-title">◆ NETWORK FILTERS</div>
+                
+                <div class="filter-group">
+                    <div class="filter-label">PHILOSOPHERS</div>
+                    <div class="philosopher-filter">
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="nietzsche-check" checked onchange="updateNetwork()">
+                            <label for="nietzsche-check">NIETZSCHE</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="kant-check" checked onchange="updateNetwork()">
+                            <label for="kant-check">KANT</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="hume-check" checked onchange="updateNetwork()">
+                            <label for="hume-check">HUME</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <div class="filter-label">CONCEPT CATEGORIES</div>
+                    <div class="philosopher-filter">
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="metaphysics-check" checked onchange="updateNetwork()">
+                            <label for="metaphysics-check">METAPHYSICS</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="ethics-check" checked onchange="updateNetwork()">
+                            <label for="ethics-check">ETHICS</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="epistemology-check" checked onchange="updateNetwork()">
+                            <label for="epistemology-check">EPISTEMOLOGY</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="logic-check" checked onchange="updateNetwork()">
+                            <label for="logic-check">LOGIC</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="concept-strength">
+                    <div class="filter-label">CONNECTION STRENGTH</div>
+                    <input type="range" class="strength-slider" min="0.1" max="1.0" step="0.1" value="0.3" 
+                           id="strength-slider" onchange="updateNetwork()">
+                    <div style="color: #FFFFFF; font-size: 0.8em; margin-top: 5px;">
+                        THRESHOLD: <span id="threshold-value">0.3</span>
+                    </div>
+                </div>
+                
+                <div class="network-controls">
+                    <button class="control-btn" onclick="resetNetwork()">RESET NETWORK</button>
+                    <button class="control-btn" onclick="centerNetwork()">CENTER VIEW</button>
+                    <button class="control-btn" onclick="pauseSimulation()">PAUSE/RESUME</button>
+                    <button class="control-btn" onclick="exportNetwork()">EXPORT DATA</button>
+                </div>
+                
+                <div class="stats-display">
+                    <div class="panel-title">◆ NETWORK STATS</div>
+                    <div class="stat-row">
+                        <span class="stat-label">NODES:</span>
+                        <span class="stat-value" id="node-count">47</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">CONNECTIONS:</span>
+                        <span class="stat-value" id="link-count">89</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">CLUSTERS:</span>
+                        <span class="stat-value" id="cluster-count">8</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">DENSITY:</span>
+                        <span class="stat-value" id="density">0.247</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="main-network">
+                <div class="loading-overlay" id="loading" style="display: none;">
+                    <div>
+                        ANALYZING SEMANTIC STRUCTURES...
+                        <div class="matrix-scanner"></div>
+                    </div>
+                </div>
+                <svg id="network-svg"></svg>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #00FF00;"></div>
+                        <span style="color: #FFFFFF;">CENTRAL CONCEPTS</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #FFFFFF;"></div>
+                        <span style="color: #FFFFFF;">SECONDARY CONCEPTS</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #888888;"></div>
+                        <span style="color: #FFFFFF;">PERIPHERAL CONCEPTS</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <div class="panel-title">◆ NODE ANALYSIS</div>
+                
+                <div class="node-info" id="selected-node">
+                    <div class="node-title">SELECT A CONCEPT</div>
+                    <div class="node-details">
+                        Click on any concept node to view detailed analysis including:
+                        <br>• Philosophical context
+                        <br>• Connection strength
+                        <br>• Related concepts
+                        <br>• Usage frequency
+                    </div>
+                </div>
+                
+                <div class="panel-title">◆ CONNECTIONS</div>
+                <div class="connection-list" id="connections">
+                    <div class="connection-item">
+                        REALITY → EXISTENCE <span class="connection-strength">0.847</span>
+                    </div>
+                    <div class="connection-item">
+                        KNOWLEDGE → TRUTH <span class="connection-strength">0.782</span>
+                    </div>
+                    <div class="connection-item">
+                        MORALITY → VALUES <span class="connection-strength">0.693</span>
+                    </div>
+                    <div class="connection-item">
+                        REASON → LOGIC <span class="connection-strength">0.654</span>
+                    </div>
+                </div>
+                
+                <div class="panel-title">◆ CLUSTER ANALYSIS</div>
+                <div id="cluster-info" style="color: #FFFFFF; font-size: 0.85em;">
+                    <div style="margin-bottom: 8px;">
+                        <span style="color: #00FF00;">CLUSTER 1:</span> EPISTEMOLOGICAL CORE
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span style="color: #00FF00;">CLUSTER 2:</span> ETHICAL FRAMEWORK
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span style="color: #00FF00;">CLUSTER 3:</span> METAPHYSICAL FOUNDATIONS
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span style="color: #00FF00;">CLUSTER 4:</span> LOGICAL STRUCTURES
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Semantic network data based on philosophical analysis
+        // Generated semantic network data
+        // Generated semantic network data
+        // Generated semantic network data
+        // Generated semantic network data
+        // Generated semantic network data
+        // Generated semantic network data
+        // Generated semantic network data
+        // Generated semantic network data
+        const networkData = {
+        "nodes": [
+                {
+                        "id": "will",
+                        "label": "WILL",
+                        "category": "ethical",
+                        "philosopher": "Aquinas",
+                        "importance": 1.0,
+                        "frequency": 5006,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "nature",
+                        "label": "NATURE",
+                        "category": "metaphysical",
+                        "philosopher": "Aquinas",
+                        "importance": 0.6332401118657611,
+                        "frequency": 3170,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "being",
+                        "label": "BEING",
+                        "category": "metaphysical",
+                        "philosopher": "Aquinas",
+                        "importance": 0.6144626448262086,
+                        "frequency": 3076,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "reason",
+                        "label": "REASON",
+                        "category": "epistemological",
+                        "philosopher": "Kant",
+                        "importance": 0.598881342389133,
+                        "frequency": 2998,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "good",
+                        "label": "GOOD",
+                        "category": "ethical",
+                        "philosopher": "Aquinas",
+                        "importance": 0.562325209748302,
+                        "frequency": 2815,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "soul",
+                        "label": "SOUL",
+                        "category": "metaphysical",
+                        "philosopher": "Aquinas",
+                        "importance": 0.4512584898122253,
+                        "frequency": 2259,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "knowledge",
+                        "label": "KNOWLEDGE",
+                        "category": "epistemological",
+                        "philosopher": "Aquinas",
+                        "importance": 0.42628845385537356,
+                        "frequency": 2134,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "power",
+                        "label": "POWER",
+                        "category": "political",
+                        "philosopher": "Aquinas",
+                        "importance": 0.4147023571713943,
+                        "frequency": 2076,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "time",
+                        "label": "TIME",
+                        "category": "metaphysical",
+                        "philosopher": "Aquinas",
+                        "importance": 0.39792249300838994,
+                        "frequency": 1992,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "state",
+                        "label": "STATE",
+                        "category": "political",
+                        "philosopher": "Plato",
+                        "importance": 0.2990411506192569,
+                        "frequency": 1497,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "divine",
+                        "label": "DIVINE",
+                        "category": "religious",
+                        "philosopher": "Aquinas",
+                        "importance": 0.2820615261685977,
+                        "frequency": 1412,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "kant_critique_pure_reason",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "truth",
+                        "label": "TRUTH",
+                        "category": "epistemological",
+                        "philosopher": "Aquinas",
+                        "importance": 0.2682780663204155,
+                        "frequency": 1343,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "existence",
+                        "label": "EXISTENCE",
+                        "category": "metaphysical",
+                        "philosopher": "Kant",
+                        "importance": 0.2642828605673192,
+                        "frequency": 1323,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "experience",
+                        "label": "EXPERIENCE",
+                        "category": "epistemological",
+                        "philosopher": "Kant",
+                        "importance": 0.2628845385537355,
+                        "frequency": 1316,
+                        "texts": [
+                                "hume_human_understanding",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "understanding",
+                        "label": "UNDERSTANDING",
+                        "category": "epistemological",
+                        "philosopher": "Kant",
+                        "importance": 0.22393128246104674,
+                        "frequency": 1121,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "essence",
+                        "label": "ESSENCE",
+                        "category": "metaphysical",
+                        "philosopher": "Aquinas",
+                        "importance": 0.21753895325609268,
+                        "frequency": 1089,
+                        "texts": [
+                                "hume_human_understanding",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "mind",
+                        "label": "MIND",
+                        "category": "metaphysical",
+                        "philosopher": "Aquinas",
+                        "importance": 0.21014782261286455,
+                        "frequency": 1052,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "evil",
+                        "label": "EVIL",
+                        "category": "ethical",
+                        "philosopher": "Aquinas",
+                        "importance": 0.1839792249300839,
+                        "frequency": 921,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "maimonides_guide_perplexed",
+                                "kant_critique_pure_reason",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "right",
+                        "label": "RIGHT",
+                        "category": "ethical",
+                        "philosopher": "Plato",
+                        "importance": 0.16200559328805433,
+                        "frequency": 811,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "action",
+                        "label": "ACTION",
+                        "category": "ethical",
+                        "philosopher": "Aquinas",
+                        "importance": 0.15781062724730324,
+                        "frequency": 790,
+                        "texts": [
+                                "hume_human_understanding",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "substance",
+                        "label": "SUBSTANCE",
+                        "category": "metaphysical",
+                        "philosopher": "Aquinas",
+                        "importance": 0.14802237315221733,
+                        "frequency": 741,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "intuition",
+                        "label": "INTUITION",
+                        "category": "epistemological",
+                        "philosopher": "Kant",
+                        "importance": 0.1330403515781063,
+                        "frequency": 666,
+                        "texts": [
+                                "hume_human_understanding",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "kant_critique_pure_reason",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics"
+                        ]
+                },
+                {
+                        "id": "justice",
+                        "label": "JUSTICE",
+                        "category": "ethical",
+                        "philosopher": "Plato",
+                        "importance": 0.1278465840990811,
+                        "frequency": 640,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "virtue",
+                        "label": "VIRTUE",
+                        "category": "ethical",
+                        "philosopher": "Aquinas",
+                        "importance": 0.11965641230523372,
+                        "frequency": 599,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "necessity",
+                        "label": "NECESSITY",
+                        "category": "metaphysical",
+                        "philosopher": "Aquinas",
+                        "importance": 0.11486216540151818,
+                        "frequency": 575,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "reality",
+                        "label": "REALITY",
+                        "category": "metaphysical",
+                        "philosopher": "Kant",
+                        "importance": 0.09948062325209749,
+                        "frequency": 498,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "space",
+                        "label": "SPACE",
+                        "category": "metaphysical",
+                        "philosopher": "Kant",
+                        "importance": 0.09848182181382341,
+                        "frequency": 493,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "maimonides_guide_perplexed",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "wisdom",
+                        "label": "WISDOM",
+                        "category": "epistemological",
+                        "philosopher": "Aquinas",
+                        "importance": 0.08829404714342788,
+                        "frequency": 442,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "spirit",
+                        "label": "SPIRIT",
+                        "category": "metaphysical",
+                        "philosopher": "Aquinas",
+                        "importance": 0.07271274470635238,
+                        "frequency": 364,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "kant_critique_pure_reason",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                },
+                {
+                        "id": "proposition",
+                        "label": "PROPOSITION",
+                        "category": "logical",
+                        "philosopher": "Kant",
+                        "importance": 0.07191370355573312,
+                        "frequency": 360,
+                        "texts": [
+                                "hume_human_understanding",
+                                "plato_apology",
+                                "nietzsche_beyond_good_evil",
+                                "plato_republic",
+                                "descartes_meditations",
+                                "kant_critique_pure_reason",
+                                "descartes_discourse_method",
+                                "aquinas_summa_theologica",
+                                "aristotle_nicomachean_ethics",
+                                "james_pragmatism"
+                        ]
+                }
+        ],
+        "links": [
+                {
+                        "source": "will",
+                        "target": "nature",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "being",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "reason",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "good",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "soul",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "knowledge",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "power",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "time",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "state",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "divine",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "truth",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "existence",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "experience",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "understanding",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "essence",
+                        "strength": 0.9735825988836243,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "mind",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "evil",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "right",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "action",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "substance",
+                        "strength": 0.8057658677742939,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "intuition",
+                        "strength": 0.7224733767451686,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "justice",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "virtue",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "necessity",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "reality",
+                        "strength": 0.938412537298411,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "space",
+                        "strength": 0.7864352187896434,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "wisdom",
+                        "strength": 0.96175849283103,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "spirit",
+                        "strength": 0.9818571267910031,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "will",
+                        "target": "proposition",
+                        "strength": 0.8451323051204395,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "being",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "reason",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "good",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "soul",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "knowledge",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "power",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "time",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "state",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "divine",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "truth",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "existence",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "experience",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "understanding",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "essence",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "mind",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "evil",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "right",
+                        "strength": 0.9148855125404177,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "action",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "substance",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "intuition",
+                        "strength": 0.8815137949194187,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "justice",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "virtue",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "necessity",
+                        "strength": 0.9896841587399804,
+                        "type": "categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "reality",
+                        "strength": 0.9896841587399804,
+                        "type": "categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "space",
+                        "strength": 0.8228167085839343,
+                        "type": "categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "wisdom",
+                        "strength": 0.923160040447314,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "spirit",
+                        "strength": 0.8057658677742939,
+                        "type": "categorical"
+                },
+                {
+                        "source": "nature",
+                        "target": "proposition",
+                        "strength": 0.8228167085839343,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "reason",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "good",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "soul",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "knowledge",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "power",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "time",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "state",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "divine",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "truth",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "existence",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "experience",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "understanding",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "essence",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "mind",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "evil",
+                        "strength": 0.9871218825181609,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "right",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "action",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "substance",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "intuition",
+                        "strength": 0.9148855125404177,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "justice",
+                        "strength": 0.9309870723958594,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "virtue",
+                        "strength": 0.9896841587399804,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "necessity",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "reality",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "space",
+                        "strength": 0.8306437405311843,
+                        "type": "categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "wisdom",
+                        "strength": 0.906109199634597,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "spirit",
+                        "strength": 0.7641196222566546,
+                        "type": "categorical"
+                },
+                {
+                        "source": "being",
+                        "target": "proposition",
+                        "strength": 0.906109199634597,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "good",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "soul",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "knowledge",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "power",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "time",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "state",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "divine",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "truth",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "existence",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "experience",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "understanding",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "essence",
+                        "strength": 0.938412537298411,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "mind",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "evil",
+                        "strength": 0.9190818883090134,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "right",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "action",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "substance",
+                        "strength": 0.8518667671479504,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "intuition",
+                        "strength": 0.9454756369873354,
+                        "type": "categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "justice",
+                        "strength": 0.8815137949194187,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "virtue",
+                        "strength": 0.9454756369873354,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "necessity",
+                        "strength": 0.9922018713698609,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "reality",
+                        "strength": 0.96175849283103,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "space",
+                        "strength": 0.8380692054325699,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "wisdom",
+                        "strength": 0.927126448213218,
+                        "type": "categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "spirit",
+                        "strength": 0.8518667671479504,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reason",
+                        "target": "proposition",
+                        "strength": 0.923160040447314,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "soul",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "knowledge",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "power",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "time",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "state",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "divine",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "truth",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "existence",
+                        "strength": 0.923160040447314,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "experience",
+                        "strength": 0.8518667671479504,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "understanding",
+                        "strength": 0.8228167085839343,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "essence",
+                        "strength": 0.938412537298411,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "mind",
+                        "strength": 0.9454756369873354,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "evil",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "right",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "action",
+                        "strength": 0.9648062859772605,
+                        "type": "categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "substance",
+                        "strength": 0.705422535941682,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "intuition",
+                        "strength": 0.6373825417894982,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "justice",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "virtue",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "necessity",
+                        "strength": 0.8518667671479504,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "reality",
+                        "strength": 0.7964229599112382,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "space",
+                        "strength": 0.7224733767451686,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "wisdom",
+                        "strength": 0.9015131048069458,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "spirit",
+                        "strength": 0.9148855125404177,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "good",
+                        "target": "proposition",
+                        "strength": 0.6373825417894982,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "knowledge",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "power",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "time",
+                        "strength": 0.9586451507467254,
+                        "type": "categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "state",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "divine",
+                        "strength": 0.9454756369873354,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "truth",
+                        "strength": 0.96175849283103,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "existence",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "experience",
+                        "strength": 0.8145421806784859,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "understanding",
+                        "strength": 0.9922018713698609,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "essence",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "mind",
+                        "strength": 0.9735825988836243,
+                        "type": "categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "evil",
+                        "strength": 0.9554633781117433,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "right",
+                        "strength": 0.7864352187896434,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "action",
+                        "strength": 0.8918585394971449,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "substance",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "intuition",
+                        "strength": 0.663776290442503,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "justice",
+                        "strength": 0.8918585394971449,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "virtue",
+                        "strength": 0.9791511633839195,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "necessity",
+                        "strength": 0.8228167085839343,
+                        "type": "categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "reality",
+                        "strength": 0.6050792041644514,
+                        "type": "categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "space",
+                        "strength": 0.7224733767451686,
+                        "type": "categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "wisdom",
+                        "strength": 0.8380692054325699,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "spirit",
+                        "strength": 0.9105638534864183,
+                        "type": "categorical"
+                },
+                {
+                        "source": "soul",
+                        "target": "proposition",
+                        "strength": 0.7377258735888814,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "power",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "time",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "state",
+                        "strength": 0.9586451507467254,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "divine",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "truth",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "existence",
+                        "strength": 0.994676544062671,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "experience",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "understanding",
+                        "strength": 0.9995024851850528,
+                        "type": "categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "essence",
+                        "strength": 0.96175849283103,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "mind",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "evil",
+                        "strength": 0.8867785506459905,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "right",
+                        "strength": 0.906109199634597,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "action",
+                        "strength": 0.9309870723958594,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "substance",
+                        "strength": 0.8518667671479504,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "intuition",
+                        "strength": 0.8644629541077272,
+                        "type": "categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "justice",
+                        "strength": 0.7864352187896434,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "virtue",
+                        "strength": 0.9347474091984913,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "necessity",
+                        "strength": 0.8451323051204395,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "reality",
+                        "strength": 0.8306437405311843,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "space",
+                        "strength": 0.7641196222566546,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "wisdom",
+                        "strength": 0.9648062859772605,
+                        "type": "categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "spirit",
+                        "strength": 0.7641196222566546,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "knowledge",
+                        "target": "proposition",
+                        "strength": 0.7515234353002342,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "time",
+                        "strength": 0.9488820253807401,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "state",
+                        "strength": 0.9309870723958594,
+                        "type": "categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "divine",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "truth",
+                        "strength": 0.8918585394971449,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "existence",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "experience",
+                        "strength": 0.9015131048069458,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "understanding",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "essence",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "mind",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "evil",
+                        "strength": 0.8228167085839343,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "right",
+                        "strength": 0.8518667671479504,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "action",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "substance",
+                        "strength": 0.9871218825181609,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "intuition",
+                        "strength": 0.7224733767451686,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "justice",
+                        "strength": 0.8918585394971449,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "virtue",
+                        "strength": 0.9586451507467254,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "necessity",
+                        "strength": 0.8703725430930609,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "reality",
+                        "strength": 0.7964229599112382,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "space",
+                        "strength": 0.663776290442503,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "wisdom",
+                        "strength": 0.9454756369873354,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "spirit",
+                        "strength": 0.927126448213218,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "power",
+                        "target": "proposition",
+                        "strength": 0.5634329587021935,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "state",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "divine",
+                        "strength": 0.8583018188779948,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "truth",
+                        "strength": 0.9648062859772605,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "existence",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "experience",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "understanding",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "essence",
+                        "strength": 0.6373825417894982,
+                        "type": "categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "mind",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "evil",
+                        "strength": 0.7964229599112382,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "right",
+                        "strength": 0.9586451507467254,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "action",
+                        "strength": 0.9148855125404177,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "substance",
+                        "strength": 0.8815137949194187,
+                        "type": "categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "intuition",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "justice",
+                        "strength": 0.8145421806784859,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "virtue",
+                        "strength": 0.7964229599112382,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "necessity",
+                        "strength": 0.906109199634597,
+                        "type": "categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "reality",
+                        "strength": 0.9488820253807401,
+                        "type": "categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "space",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "wisdom",
+                        "strength": 0.7377258735888814,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "spirit",
+                        "strength": 0.8057658677742939,
+                        "type": "categorical"
+                },
+                {
+                        "source": "time",
+                        "target": "proposition",
+                        "strength": 0.8057658677742939,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "divine",
+                        "strength": 0.8380692054325699,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "truth",
+                        "strength": 0.923160040447314,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "existence",
+                        "strength": 0.9896841587399804,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "experience",
+                        "strength": 0.8145421806784859,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "understanding",
+                        "strength": 0.7515234353002342,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "essence",
+                        "strength": 0.775706991004045,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "mind",
+                        "strength": 0.976393654728911,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "evil",
+                        "strength": 0.9648062859772605,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "right",
+                        "strength": 0.927126448213218,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "action",
+                        "strength": 0.8867785506459905,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "substance",
+                        "strength": 0.7641196222566546,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "intuition",
+                        "strength": 0.705422535941682,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "justice",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "virtue",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "necessity",
+                        "strength": 0.8518667671479504,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "reality",
+                        "strength": 0.8518667671479504,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "space",
+                        "strength": 0.6860918869649429,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "wisdom",
+                        "strength": 0.9148855125404177,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "spirit",
+                        "strength": 0.8057658677742939,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "state",
+                        "target": "proposition",
+                        "strength": 0.5634329587021935,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "truth",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "existence",
+                        "strength": 0.9971096236429204,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "experience",
+                        "strength": 0.6860918869649429,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "understanding",
+                        "strength": 0.8703725430930609,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "essence",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "mind",
+                        "strength": 0.994676544062671,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "evil",
+                        "strength": 0.8815137949194187,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "right",
+                        "strength": 0.7641196222566546,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "action",
+                        "strength": 0.8306437405311843,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "substance",
+                        "strength": 0.9995024851850528,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "intuition",
+                        "strength": 0.504735872497984,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "justice",
+                        "strength": 0.9586451507467254,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "virtue",
+                        "strength": 0.7864352187896434,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "necessity",
+                        "strength": 0.9347474091984913,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "reality",
+                        "strength": 0.6860918869649429,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "space",
+                        "strength": 0.40439254105304306,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "wisdom",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "spirit",
+                        "strength": 0.7224733767451686,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "divine",
+                        "target": "proposition",
+                        "strength": 0.6373825417894982,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "existence",
+                        "strength": 0.927126448213218,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "experience",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "understanding",
+                        "strength": 0.923160040447314,
+                        "type": "categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "essence",
+                        "strength": 0.8451323051204395,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "mind",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "evil",
+                        "strength": 0.7864352187896434,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "right",
+                        "strength": 0.9148855125404177,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "action",
+                        "strength": 0.8145421806784859,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "substance",
+                        "strength": 0.7515234353002342,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "intuition",
+                        "strength": 0.5634329587021935,
+                        "type": "categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "justice",
+                        "strength": 0.9554633781117433,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "virtue",
+                        "strength": 0.8703725430930609,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "necessity",
+                        "strength": 0.6860918869649429,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "reality",
+                        "strength": 0.9015131048069458,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "space",
+                        "strength": 0.6373825417894982,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "wisdom",
+                        "strength": 0.8644629541077272,
+                        "type": "categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "spirit",
+                        "strength": 0.7515234353002342,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "truth",
+                        "target": "proposition",
+                        "strength": 0.9522100990158054,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "experience",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "understanding",
+                        "strength": 0.9995024851850528,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "essence",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "mind",
+                        "strength": 0.8760503228579578,
+                        "type": "categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "evil",
+                        "strength": 0.7515234353002342,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "right",
+                        "strength": 0.7377258735888814,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "action",
+                        "strength": 0.906109199634597,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "substance",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "intuition",
+                        "strength": 0.9454756369873354,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "justice",
+                        "strength": 0.705422535941682,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "virtue",
+                        "strength": 0.7224733767451686,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "necessity",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "reality",
+                        "strength": 0.9735825988836243,
+                        "type": "categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "space",
+                        "strength": 0.923160040447314,
+                        "type": "categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "wisdom",
+                        "strength": 0.6373825417894982,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "spirit",
+                        "strength": 0.6373825417894982,
+                        "type": "categorical"
+                },
+                {
+                        "source": "existence",
+                        "target": "proposition",
+                        "strength": 0.8306437405311843,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "experience",
+                        "target": "understanding",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "experience",
+                        "target": "essence",
+                        "strength": 0.5634329587021935,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "experience",
+                        "target": "mind",
+                        "strength": 0.9522100990158054,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "experience",
+                        "target": "evil",
+                        "strength": 0.775706991004045,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "experience",
+                        "target": "right",
+                        "strength": 0.7515234353002342,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "experience",
+                        "target": "action",
+                        "strength": 0.705422535941682,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "experience",
+                        "target": "substance",
+                        "strength": 0.775706991004045,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "experience",
+                        "target": "intuition",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "experience",
+                        "target": "justice",
+                        "strength": 0.6373825417894982,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "experience",
+                        "target": "virtue",
+                        "strength": 0.7864352187896434,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "experience",
+                        "target": "necessity",
+                        "strength": 0.9148855125404177,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "experience",
+                        "target": "reality",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "experience",
+                        "target": "space",
+                        "strength": 0.9454756369873354,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "experience",
+                        "target": "wisdom",
+                        "strength": 0.7864352187896434,
+                        "type": "categorical"
+                },
+                {
+                        "source": "experience",
+                        "target": "spirit",
+                        "strength": 0.40439254105304306,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "experience",
+                        "target": "proposition",
+                        "strength": 0.9148855125404177,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "understanding",
+                        "target": "essence",
+                        "strength": 0.9148855125404177,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "understanding",
+                        "target": "mind",
+                        "strength": 0.9522100990158054,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "understanding",
+                        "target": "evil",
+                        "strength": 0.40439254105304306,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "understanding",
+                        "target": "right",
+                        "strength": 0.7641196222566546,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "understanding",
+                        "target": "action",
+                        "strength": 0.9190818883090134,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "understanding",
+                        "target": "substance",
+                        "strength": 0.927126448213218,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "understanding",
+                        "target": "intuition",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "understanding",
+                        "target": "justice",
+                        "strength": 0.5634329587021935,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "understanding",
+                        "target": "virtue",
+                        "strength": 0.7641196222566546,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "understanding",
+                        "target": "necessity",
+                        "strength": 0.8583018188779948,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "understanding",
+                        "target": "reality",
+                        "strength": 0.8644629541077272,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "understanding",
+                        "target": "space",
+                        "strength": 0.8703725430930609,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "understanding",
+                        "target": "wisdom",
+                        "strength": 0.6860918869649429,
+                        "type": "categorical"
+                },
+                {
+                        "source": "understanding",
+                        "target": "spirit",
+                        "strength": 0.40439254105304306,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "understanding",
+                        "target": "proposition",
+                        "strength": 0.8644629541077272,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "essence",
+                        "target": "mind",
+                        "strength": 0.8815137949194187,
+                        "type": "categorical"
+                },
+                {
+                        "source": "essence",
+                        "target": "evil",
+                        "strength": 0.663776290442503,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "essence",
+                        "target": "right",
+                        "strength": 0.5634329587021935,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "essence",
+                        "target": "action",
+                        "strength": 0.7864352187896434,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "essence",
+                        "target": "substance",
+                        "strength": 0.9347474091984913,
+                        "type": "categorical"
+                },
+                {
+                        "source": "essence",
+                        "target": "intuition",
+                        "strength": 0.40439254105304306,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "essence",
+                        "target": "justice",
+                        "strength": 0.6860918869649429,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "essence",
+                        "target": "virtue",
+                        "strength": 0.7641196222566546,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "essence",
+                        "target": "necessity",
+                        "strength": 0.7224733767451686,
+                        "type": "categorical"
+                },
+                {
+                        "source": "essence",
+                        "target": "reality",
+                        "strength": 0.7515234353002342,
+                        "type": "categorical"
+                },
+                {
+                        "source": "essence",
+                        "target": "space",
+                        "strength": 0.40439254105304306,
+                        "type": "categorical"
+                },
+                {
+                        "source": "essence",
+                        "target": "wisdom",
+                        "strength": 0.8583018188779948,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "essence",
+                        "target": "spirit",
+                        "strength": 0.6050792041644514,
+                        "type": "categorical"
+                },
+                {
+                        "source": "essence",
+                        "target": "proposition",
+                        "strength": 0.7515234353002342,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "mind",
+                        "target": "evil",
+                        "strength": 0.663776290442503,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "mind",
+                        "target": "right",
+                        "strength": 0.8815137949194187,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "mind",
+                        "target": "action",
+                        "strength": 0.8380692054325699,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "mind",
+                        "target": "substance",
+                        "strength": 0.7864352187896434,
+                        "type": "categorical"
+                },
+                {
+                        "source": "mind",
+                        "target": "intuition",
+                        "strength": 0.8867785506459905,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "mind",
+                        "target": "justice",
+                        "strength": 0.8228167085839343,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "mind",
+                        "target": "virtue",
+                        "strength": 0.775706991004045,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "mind",
+                        "target": "necessity",
+                        "strength": 0.8228167085839343,
+                        "type": "categorical"
+                },
+                {
+                        "source": "mind",
+                        "target": "reality",
+                        "strength": 0.8380692054325699,
+                        "type": "categorical"
+                },
+                {
+                        "source": "mind",
+                        "target": "space",
+                        "strength": 0.6860918869649429,
+                        "type": "categorical"
+                },
+                {
+                        "source": "mind",
+                        "target": "wisdom",
+                        "strength": 0.663776290442503,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "mind",
+                        "target": "spirit",
+                        "strength": 0.8518667671479504,
+                        "type": "categorical"
+                },
+                {
+                        "source": "mind",
+                        "target": "proposition",
+                        "strength": 0.7224733767451686,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "evil",
+                        "target": "right",
+                        "strength": 0.7964229599112382,
+                        "type": "categorical"
+                },
+                {
+                        "source": "evil",
+                        "target": "action",
+                        "strength": 0.8145421806784859,
+                        "type": "categorical"
+                },
+                {
+                        "source": "evil",
+                        "target": "substance",
+                        "strength": 0.5634329587021935,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "evil",
+                        "target": "intuition",
+                        "strength": 0.5634329587021935,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "evil",
+                        "target": "justice",
+                        "strength": 0.8815137949194187,
+                        "type": "categorical"
+                },
+                {
+                        "source": "evil",
+                        "target": "virtue",
+                        "strength": 0.8228167085839343,
+                        "type": "categorical"
+                },
+                {
+                        "source": "evil",
+                        "target": "necessity",
+                        "strength": 0.663776290442503,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "evil",
+                        "target": "reality",
+                        "strength": 0.6050792041644514,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "evil",
+                        "target": "space",
+                        "strength": 0.40439254105304306,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "evil",
+                        "target": "wisdom",
+                        "strength": 0.7224733767451686,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "evil",
+                        "target": "spirit",
+                        "strength": 0.7377258735888814,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "evil",
+                        "target": "proposition",
+                        "strength": 0.40439254105304306,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "right",
+                        "target": "action",
+                        "strength": 0.8815137949194187,
+                        "type": "categorical"
+                },
+                {
+                        "source": "right",
+                        "target": "substance",
+                        "strength": 0.6050792041644514,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "right",
+                        "target": "intuition",
+                        "strength": 0.6373825417894982,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "right",
+                        "target": "justice",
+                        "strength": 0.8867785506459905,
+                        "type": "categorical"
+                },
+                {
+                        "source": "right",
+                        "target": "virtue",
+                        "strength": 0.9347474091984913,
+                        "type": "categorical"
+                },
+                {
+                        "source": "right",
+                        "target": "necessity",
+                        "strength": 0.7515234353002342,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "right",
+                        "target": "reality",
+                        "strength": 0.5634329587021935,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "right",
+                        "target": "space",
+                        "strength": 0.7224733767451686,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "right",
+                        "target": "wisdom",
+                        "strength": 0.8057658677742939,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "right",
+                        "target": "spirit",
+                        "strength": 0.5634329587021935,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "right",
+                        "target": "proposition",
+                        "strength": 0.5634329587021935,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "action",
+                        "target": "substance",
+                        "strength": 0.8703725430930609,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "action",
+                        "target": "intuition",
+                        "strength": 0.6373825417894982,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "action",
+                        "target": "justice",
+                        "strength": 0.663776290442503,
+                        "type": "categorical"
+                },
+                {
+                        "source": "action",
+                        "target": "virtue",
+                        "strength": 0.8583018188779948,
+                        "type": "categorical"
+                },
+                {
+                        "source": "action",
+                        "target": "necessity",
+                        "strength": 0.8867785506459905,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "action",
+                        "target": "reality",
+                        "strength": 0.6050792041644514,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "action",
+                        "target": "space",
+                        "strength": 0.5634329587021935,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "action",
+                        "target": "wisdom",
+                        "strength": 0.8228167085839343,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "action",
+                        "target": "spirit",
+                        "strength": 0.6373825417894982,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "action",
+                        "target": "proposition",
+                        "strength": 0.504735872497984,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "substance",
+                        "target": "intuition",
+                        "strength": 0.8451323051204395,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "substance",
+                        "target": "justice",
+                        "strength": 0.40439254105304306,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "substance",
+                        "target": "virtue",
+                        "strength": 0.7377258735888814,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "substance",
+                        "target": "necessity",
+                        "strength": 0.775706991004045,
+                        "type": "categorical"
+                },
+                {
+                        "source": "substance",
+                        "target": "reality",
+                        "strength": 0.8967662917696951,
+                        "type": "categorical"
+                },
+                {
+                        "source": "substance",
+                        "target": "space",
+                        "strength": 0.7864352187896434,
+                        "type": "categorical"
+                },
+                {
+                        "source": "substance",
+                        "target": "wisdom",
+                        "strength": 0.504735872497984,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "substance",
+                        "target": "spirit",
+                        "strength": 0.6860918869649429,
+                        "type": "categorical"
+                },
+                {
+                        "source": "substance",
+                        "target": "proposition",
+                        "strength": 0.7515234353002342,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "intuition",
+                        "target": "justice",
+                        "strength": 0.5634329587021935,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "intuition",
+                        "target": "virtue",
+                        "strength": 0.663776290442503,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "intuition",
+                        "target": "necessity",
+                        "strength": 0.705422535941682,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "intuition",
+                        "target": "reality",
+                        "strength": 0.8867785506459905,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "intuition",
+                        "target": "space",
+                        "strength": 1.0,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "intuition",
+                        "target": "wisdom",
+                        "strength": 0.705422535941682,
+                        "type": "categorical"
+                },
+                {
+                        "source": "intuition",
+                        "target": "spirit",
+                        "strength": 0.40439254105304306,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "intuition",
+                        "target": "proposition",
+                        "strength": 0.8145421806784859,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "justice",
+                        "target": "virtue",
+                        "strength": 1.0,
+                        "type": "categorical"
+                },
+                {
+                        "source": "justice",
+                        "target": "necessity",
+                        "strength": 0.7377258735888814,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "justice",
+                        "target": "reality",
+                        "strength": 0.7377258735888814,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "justice",
+                        "target": "space",
+                        "strength": 0.5634329587021935,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "justice",
+                        "target": "wisdom",
+                        "strength": 0.9347474091984913,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "justice",
+                        "target": "spirit",
+                        "strength": 0.5634329587021935,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "justice",
+                        "target": "proposition",
+                        "strength": 0.663776290442503,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "virtue",
+                        "target": "necessity",
+                        "strength": 0.7641196222566546,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "virtue",
+                        "target": "reality",
+                        "strength": 0.6050792041644514,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "virtue",
+                        "target": "space",
+                        "strength": 0.40439254105304306,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "virtue",
+                        "target": "wisdom",
+                        "strength": 0.976393654728911,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "virtue",
+                        "target": "spirit",
+                        "strength": 0.6050792041644514,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "virtue",
+                        "target": "proposition",
+                        "strength": 0.40439254105304306,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "necessity",
+                        "target": "reality",
+                        "strength": 0.8760503228579578,
+                        "type": "categorical"
+                },
+                {
+                        "source": "necessity",
+                        "target": "space",
+                        "strength": 0.705422535941682,
+                        "type": "categorical"
+                },
+                {
+                        "source": "necessity",
+                        "target": "wisdom",
+                        "strength": 0.5634329587021935,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "necessity",
+                        "target": "spirit",
+                        "strength": 0.5634329587021935,
+                        "type": "categorical"
+                },
+                {
+                        "source": "necessity",
+                        "target": "proposition",
+                        "strength": 0.8306437405311843,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reality",
+                        "target": "space",
+                        "strength": 0.8518667671479504,
+                        "type": "categorical"
+                },
+                {
+                        "source": "reality",
+                        "target": "wisdom",
+                        "strength": 0.5634329587021935,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "reality",
+                        "target": "spirit",
+                        "strength": 0.5634329587021935,
+                        "type": "categorical"
+                },
+                {
+                        "source": "reality",
+                        "target": "proposition",
+                        "strength": 0.7641196222566546,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "space",
+                        "target": "wisdom",
+                        "strength": 0.504735872497984,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "space",
+                        "target": "spirit",
+                        "strength": 0.504735872497984,
+                        "type": "categorical"
+                },
+                {
+                        "source": "space",
+                        "target": "proposition",
+                        "strength": 0.663776290442503,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "wisdom",
+                        "target": "spirit",
+                        "strength": 0.663776290442503,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "wisdom",
+                        "target": "proposition",
+                        "strength": 0.40439254105304306,
+                        "type": "cross-categorical"
+                },
+                {
+                        "source": "spirit",
+                        "target": "proposition",
+                        "strength": 0.40439254105304306,
+                        "type": "cross-categorical"
+                }
+        ],
+        "metadata": {
+                "total_concepts": 30,
+                "total_relationships": 435,
+                "density": 1.0,
+                "categories": [
+                        "ethical",
+                        "metaphysical",
+                        "epistemological",
+                        "political",
+                        "religious",
+                        "logical"
+                ],
+                "category_distribution": {
+                        "ethical": 7,
+                        "metaphysical": 12,
+                        "epistemological": 7,
+                        "political": 2,
+                        "religious": 1,
+                        "logical": 1
+                },
+                "link_type_distribution": {
+                        "cross-categorical": 326,
+                        "categorical": 109
+                },
+                "philosopher_distribution": {
+                        "Aquinas": 19,
+                        "Kant": 8,
+                        "Plato": 3
+                },
+                "avg_importance": 0.29017845252363833,
+                "is_placeholder": false
+        }
+};
+
+        let simulation, svg, nodeGroup, linkGroup;
+        let currentThreshold = 0.3;
+        let isPaused = false;
+
+        function initializeNetwork() {
+            const container = d3.select("#network-svg");
+            const containerNode = container.node();
+            const rect = containerNode.getBoundingClientRect();
+            
+            svg = container
+                .attr("width", rect.width)
+                .attr("height", rect.height);
+
+            // Create groups for links and nodes
+            linkGroup = svg.append("g").attr("class", "links");
+            nodeGroup = svg.append("g").attr("class", "nodes");
+
+            // Initialize simulation
+            simulation = d3.forceSimulation()
+                .force("link", d3.forceLink().id(d => d.id).distance(80))
+                .force("charge", d3.forceManyBody().strength(-200))
+                .force("center", d3.forceCenter(rect.width / 2, rect.height / 2))
+                .force("collision", d3.forceCollide().radius(25));
+
+            updateNetwork();
+        }
+
+        function updateNetwork() {
+            showLoading();
+            
+            setTimeout(() => {
+                const threshold = parseFloat(document.getElementById("strength-slider").value);
+                document.getElementById("threshold-value").textContent = threshold.toFixed(1);
+                currentThreshold = threshold;
+
+                // Filter data based on controls
+                const filteredData = filterNetworkData();
+                
+                // Update links
+                const links = linkGroup.selectAll(".link")
+                    .data(filteredData.links, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
+
+                links.exit().remove();
+
+                const linkEnter = links.enter().append("line")
+                    .attr("class", "link")
+                    .attr("stroke", "#00FF00")
+                    .attr("stroke-width", d => Math.sqrt(d.strength * 5))
+                    .attr("stroke-opacity", d => d.strength);
+
+                const linkUpdate = linkEnter.merge(links);
+
+                // Update nodes
+                const nodes = nodeGroup.selectAll(".node-group")
+                    .data(filteredData.nodes, d => d.id);
+
+                nodes.exit().remove();
+
+                const nodeEnter = nodes.enter().append("g")
+                    .attr("class", "node-group")
+                    .call(d3.drag()
+                        .on("start", dragstarted)
+                        .on("drag", dragged)
+                        .on("end", dragended));
+
+                nodeEnter.append("circle")
+                    .attr("class", "node")
+                    .attr("r", d => 5 + d.importance * 15)
+                    .attr("fill", d => getNodeColor(d))
+                    .attr("stroke", "#00FF00")
+                    .attr("stroke-width", 2)
+                    .on("click", selectNode)
+                    .on("mouseover", highlightNode)
+                    .on("mouseout", unhighlightNode);
+
+                nodeEnter.append("text")
+                    .attr("class", "node-label")
+                    .attr("dy", d => -(5 + d.importance * 15) - 5)
+                    .text(d => d.label)
+                    .style("font-size", d => Math.max(8, d.importance * 12) + "px");
+
+                const nodeUpdate = nodeEnter.merge(nodes);
+
+                // Update simulation
+                simulation.nodes(filteredData.nodes);
+                simulation.force("link").links(filteredData.links);
+                simulation.alpha(1).restart();
+
+                // Update positions
+                simulation.on("tick", () => {
+                    linkUpdate
+                        .attr("x1", d => d.source.x)
+                        .attr("y1", d => d.source.y)
+                        .attr("x2", d => d.target.x)
+                        .attr("y2", d => d.target.y);
+
+                    nodeUpdate
+                        .attr("transform", d => `translate(${d.x},${d.y})`);
+                });
+
+                updateStats(filteredData);
+                hideLoading();
+            }, 500);
+        }
+
+        function filterNetworkData() {
+            // Get filter states
+            const philosophers = [];
+            if (document.getElementById("nietzsche-check").checked) philosophers.push("nietzsche");
+            if (document.getElementById("kant-check").checked) philosophers.push("kant");
+            if (document.getElementById("hume-check").checked) philosophers.push("hume");
+
+            const categories = [];
+            if (document.getElementById("metaphysics-check").checked) categories.push("metaphysics");
+            if (document.getElementById("ethics-check").checked) categories.push("ethics");
+            if (document.getElementById("epistemology-check").checked) categories.push("epistemology");
+            if (document.getElementById("logic-check").checked) categories.push("logic");
+
+            // Filter nodes
+            const filteredNodes = networkData.nodes.filter(node => {
+                const philosopherMatch = node.philosopher === "all" || philosophers.includes(node.philosopher);
+                const categoryMatch = categories.includes(node.category);
+                return philosopherMatch && categoryMatch;
+            });
+
+            // Filter links
+            const nodeIds = new Set(filteredNodes.map(n => n.id));
+            const filteredLinks = networkData.links.filter(link => {
+                const sourceExists = nodeIds.has(link.source.id || link.source);
+                const targetExists = nodeIds.has(link.target.id || link.target);
+                const strengthMeetsThreshold = link.strength >= currentThreshold;
+                return sourceExists && targetExists && strengthMeetsThreshold;
+            });
+
+            return { nodes: filteredNodes, links: filteredLinks };
+        }
+
+        function getNodeColor(node) {
+            if (node.importance > 0.7) return "#00FF00";  // High importance - Matrix green
+            if (node.importance > 0.5) return "#FFFFFF";  // Medium importance - White
+            return "#888888";  // Low importance - Gray
+        }
+
+        function selectNode(event, d) {
+            const nodeInfo = document.getElementById("selected-node");
+            nodeInfo.innerHTML = `
+                <div class="node-title">${d.label}</div>
+                <div class="node-details">
+                    <strong>CATEGORY:</strong> ${d.category.toUpperCase()}<br>
+                    <strong>PHILOSOPHER:</strong> ${d.philosopher.toUpperCase()}<br>
+                    <strong>IMPORTANCE:</strong> ${d.importance.toFixed(3)}<br>
+                    <strong>CONNECTIONS:</strong> ${getNodeConnections(d).length}
+                </div>
+            `;
+
+            // Update connections list
+            updateConnectionsList(d);
+        }
+
+        function getNodeConnections(node) {
+            return networkData.links.filter(link => 
+                (link.source.id || link.source) === node.id || 
+                (link.target.id || link.target) === node.id
+            );
+        }
+
+        function updateConnectionsList(node) {
+            const connections = getNodeConnections(node);
+            const connectionsList = document.getElementById("connections");
+            
+            connectionsList.innerHTML = connections.map(link => {
+                const otherNode = (link.source.id || link.source) === node.id ? 
+                    (link.target.label || link.target) : (link.source.label || link.source);
+                return `<div class="connection-item">
+                    ${node.label} ↔ ${otherNode} 
+                    <span class="connection-strength">${link.strength.toFixed(3)}</span>
+                </div>`;
+            }).join('');
+        }
+
+        function highlightNode(event, d) {
+            d3.select(this).attr("stroke-width", 4);
+        }
+
+        function unhighlightNode(event, d) {
+            d3.select(this).attr("stroke-width", 2);
+        }
+
+        function updateStats(data) {
+            document.getElementById("node-count").textContent = data.nodes.length;
+            document.getElementById("link-count").textContent = data.links.length;
+            
+            const density = data.links.length / (data.nodes.length * (data.nodes.length - 1) / 2);
+            document.getElementById("density").textContent = density.toFixed(3);
+        }
+
+        function showLoading() {
+            document.getElementById("loading").style.display = "flex";
+        }
+
+        function hideLoading() {
+            document.getElementById("loading").style.display = "none";
+        }
+
+        function resetNetwork() {
+            document.getElementById("strength-slider").value = 0.3;
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+            updateNetwork();
+        }
+
+        function centerNetwork() {
+            const rect = svg.node().getBoundingClientRect();
+            simulation.force("center", d3.forceCenter(rect.width / 2, rect.height / 2));
+            simulation.alpha(0.3).restart();
+        }
+
+        function pauseSimulation() {
+            if (isPaused) {
+                simulation.restart();
+                isPaused = false;
+            } else {
+                simulation.stop();
+                isPaused = true;
+            }
+        }
+
+        function exportNetwork() {
+            const filteredData = filterNetworkData();
+            const dataStr = JSON.stringify(filteredData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'semantic_network_data.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Drag functions
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', () => {
+            setTimeout(initializeNetwork, 100);
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const container = d3.select("#network-svg");
+            const containerNode = container.node();
+            const rect = containerNode.getBoundingClientRect();
+            
+            svg.attr("width", rect.width).attr("height", rect.height);
+            simulation.force("center", d3.forceCenter(rect.width / 2, rect.height / 2));
+            simulation.alpha(0.3).restart();
+        });
+
+        // Add matrix-style scanning effect
+        setInterval(() => {
+            const scanner = document.querySelector('.matrix-scanner');
+            if (scanner && Math.random() > 0.7) {
+                scanner.style.animation = 'none';
+                setTimeout(() => {
+                    scanner.style.animation = 'scan 3s linear infinite';
+                }, 100);
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

@@ -1,6 +1,5 @@
-name: Basic CI
+name: CI
 
-# Cuándo se ejecuta: en cada push y pull request
 on:
   push:
     branches: [ main ]
@@ -10,50 +9,28 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.11"]
+
     steps:
-    # 1. Descarga tu código
     - uses: actions/checkout@v4
-    
-    # 2. Configura Python
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.9
-    
-    # 3. Instala dependencias básicas
-    - name: Install basic tools
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8
-    
-    # 4. Validación de requirements.txt
-    - name: Validate requirements.txt
-      run: |
-        if [ -f requirements.txt ]; then
-          echo "📋 Found requirements.txt, validating..."
-          echo "📦 Installing dependencies from requirements.txt"
-          pip install -r requirements.txt
-          echo "✅ All dependencies installed successfully!"
-          echo "📊 Installed packages:"
-          pip list
-        else
-          echo "⚠️  No requirements.txt found"
-          echo "Consider creating one with: pip freeze > requirements.txt"
-        fi
-    
-    # 4. Linting básico - detecta errores de sintaxis
+        pip install -e ".[dev]"
+
     - name: Lint with flake8
       run: |
-        # Para por errores de sintaxis y variables no definidas
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Warnings menos críticos (opcional)
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    
-    # 5. Verificación básica - tu script principal funciona
-    - name: Basic smoke test
+
+    - name: Run tests
       run: |
-        # Verifica que Python puede importar tus módulos principales
-        python -c "import sys; print('Python version:', sys.version)"
-        # Si tienes un main.py, verifica que no explota al importarse
-        if [ -f main.py ]; then python -c "import main; print('main.py imports successfully')"; fi
+        python -m pytest tests/ -v --tb=short

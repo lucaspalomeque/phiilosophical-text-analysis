@@ -18,8 +18,6 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import re
 
-# Setup logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Download required NLTK data with error handling
@@ -37,13 +35,19 @@ def download_nltk_data():
             nltk.data.find(path)
         except LookupError:
             try:
-                print(f"Downloading {resource}...")
+                logger.info(f"Downloading {resource}...")
                 nltk.download(resource, quiet=True)
             except Exception as e:
-                print(f"Failed to download {resource}: {e}")
+                logger.warning(f"Failed to download {resource}: {e}")
 
-# Download data at import time
-download_nltk_data()
+_nltk_data_downloaded = False
+
+def _ensure_nltk_data():
+    global _nltk_data_downloaded
+    if _nltk_data_downloaded:
+        return
+    download_nltk_data()
+    _nltk_data_downloaded = True
 
 
 class PhilosophicalAnalyzer:
@@ -56,6 +60,7 @@ class PhilosophicalAnalyzer:
     
     def __init__(self):
         """Initialize the analyzer with basic settings."""
+        _ensure_nltk_data()
         self.lemmatizer = WordNetLemmatizer()
         try:
             self.stop_words = set(stopwords.words('english'))
@@ -65,7 +70,7 @@ class PhilosophicalAnalyzer:
         
         self.vectorizer = None
         self.lsa_model = None
-        self._is_fitted = False
+        self.is_fitted = False
         
         logger.info("PhilosophicalAnalyzer initialized")
     
@@ -106,7 +111,7 @@ class PhilosophicalAnalyzer:
                     try:
                         lemmatized = self.lemmatizer.lemmatize(word)
                         processed_words.append(lemmatized)
-                    except:
+                    except Exception:
                         # Fallback: use original word
                         processed_words.append(word)
             
@@ -136,7 +141,7 @@ class PhilosophicalAnalyzer:
         if not all_sentences:
             raise ValueError("No valid sentences found in provided texts")
         
-        print(f"📊 Found {len(all_sentences)} sentences for training")
+        logger.info(f"Found {len(all_sentences)} sentences for training")
         
         # Convert to corpus format
         corpus = [' '.join(sentence) for sentence in all_sentences]
@@ -146,14 +151,14 @@ class PhilosophicalAnalyzer:
         for sentence in all_sentences:
             all_words.update(sentence)
         
-        print(f"📚 Vocabulary size: {len(all_words)} unique words")
+        logger.info(f"Vocabulary size: {len(all_words)} unique words")
         
         if len(all_words) < 10:
             # If vocabulary is too small, use simple analysis without LSA
-            print("⚠️  Vocabulary too small for LSA, using simple analysis")
+            logger.warning("Vocabulary too small for LSA, using simple analysis")
             self.vectorizer = None
             self.lsa_model = None
-            self._is_fitted = True
+            self.is_fitted = True
             self._simple_mode = True
             return self
         
@@ -168,7 +173,7 @@ class PhilosophicalAnalyzer:
         
         try:
             tfidf_matrix = self.vectorizer.fit_transform(corpus)
-            print(f"🔢 TF-IDF matrix shape: {tfidf_matrix.shape}")
+            logger.info(f"TF-IDF matrix shape: {tfidf_matrix.shape}")
             
             # Only use LSA if we have enough features
             if tfidf_matrix.shape[1] >= 2:
@@ -176,20 +181,20 @@ class PhilosophicalAnalyzer:
                 n_components = min(10, tfidf_matrix.shape[1] - 1, len(corpus) - 1)
                 self.lsa_model = TruncatedSVD(n_components=n_components, random_state=42)
                 self.lsa_model.fit(tfidf_matrix)
-                print(f"✅ LSA model built with {n_components} components")
+                logger.info(f"LSA model built with {n_components} components")
                 self._simple_mode = False
             else:
-                print("⚠️  Too few features for LSA, using TF-IDF only")
+                logger.warning("Too few features for LSA, using TF-IDF only")
                 self.lsa_model = None
                 self._simple_mode = True
         
         except Exception as e:
-            print(f"⚠️  LSA failed ({e}), using simple mode")
+            logger.warning(f"LSA failed ({e}), using simple mode")
             self.vectorizer = None
             self.lsa_model = None
             self._simple_mode = True
         
-        self._is_fitted = True
+        self.is_fitted = True
         logger.info("Analyzer fitted successfully")
         
         return self
@@ -241,9 +246,9 @@ class PhilosophicalAnalyzer:
                 vec = self.get_sentence_vector(sentence)
                 if len(vec) > 0:  # Ensure vector is not empty
                     vectors.append(vec)
-            except:
+            except Exception:
                 continue
-        
+
         if len(vectors) < 2:
             return {
                 'semantic_coherence': 0.0,
@@ -264,7 +269,7 @@ class PhilosophicalAnalyzer:
                 
                 if not np.isnan(sim) and not np.isinf(sim):
                     coherence_scores.append(sim)
-            except:
+            except Exception:
                 continue
         
         if not coherence_scores:
@@ -291,7 +296,7 @@ class PhilosophicalAnalyzer:
         Returns:
             Dictionary with analysis results
         """
-        if not self._is_fitted:
+        if not self.is_fitted:
             raise RuntimeError("Analyzer must be fitted before analyzing texts")
         
         logger.info(f"Analyzing text: {text_id}")
@@ -359,9 +364,9 @@ class PhilosophicalAnalyzer:
         return pd.DataFrame(results)
     
     def __repr__(self) -> str:
-        status = "fitted" if self._is_fitted else "not fitted"
+        status = "fitted" if self.is_fitted else "not fitted"
         mode = ""
-        if self._is_fitted and hasattr(self, '_simple_mode'):
+        if self.is_fitted and hasattr(self, '_simple_mode'):
             mode = f" (mode: {'simple' if self._simple_mode else 'lsa'})"
         return f"PhilosophicalAnalyzer(status={status}{mode})"
 

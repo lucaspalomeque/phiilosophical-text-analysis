@@ -1,16 +1,19 @@
 """
-Command Line Interface for Philosophical Text Analysis.
+Enhanced CLI with Phase 1A integration - maintains backward compatibility.
 
-Basic CLI implementation for analyzing philosophical texts.
+This extends your existing CLI to support both original and advanced analysis modes.
 """
 
+import logging
 import click
 import sys
 import json
 from pathlib import Path
 from typing import Optional
+import pandas as pd
 
-from .core.analyzer import PhilosophicalAnalyzer
+
+from .core.analyzer import PhilosophicalAnalyzer  # Your original analyzer
 from . import __version__
 
 
@@ -20,11 +23,12 @@ from . import __version__
 @click.pass_context
 def cli(ctx, verbose):
     """
-    Philosophical Text Analysis CLI.
-    
+    Philosophical Text Analysis CLI - Enhanced with Phase 1A.
+
     Analyze philosophical texts using psycholinguistic techniques.
+    Now supports both original and advanced analysis modes.
     """
-    # Ensure context object exists
+    logging.basicConfig(level=logging.DEBUG if verbose else logging.WARNING)
     ctx.ensure_object(dict)
     ctx.obj['verbose'] = verbose
 
@@ -46,20 +50,36 @@ def cli(ctx, verbose):
     help='Author name for the text'
 )
 @click.option(
+    '--advanced', 
+    is_flag=True,
+    help='Use advanced Phase 1A analysis (POS + Convex Hull + Enhanced Coherence)'
+)
+@click.option(
+    '--mode',
+    type=click.Choice(['basic', 'advanced', 'full']),
+    default='basic',
+    help='Analysis mode: basic (original), advanced (Phase 1A), full (all metrics)'
+)
+@click.option(
     '--verbose', '-v',
     is_flag=True,
     help='Enable verbose output for this command'
 )
 @click.pass_context
-def analyze(ctx, text, output, author, verbose):
+def analyze(ctx, text, output, author, advanced, mode, verbose):
     """Analyze a single philosophical text."""
     
-    # Use command-level verbose or global verbose
     verbose = verbose or ctx.obj.get('verbose', False)
+    
+    # Determine analysis mode
+    if advanced or mode in ['advanced', 'full']:
+        analysis_mode = 'advanced'
+    else:
+        analysis_mode = 'basic'
     
     try:
         if verbose:
-            click.echo(f"🔬 Analyzing: {text}")
+            click.echo(f"🔬 Analyzing: {text} (mode: {analysis_mode})")
         
         # Read the text file
         text_path = Path(text)
@@ -70,52 +90,42 @@ def analyze(ctx, text, output, author, verbose):
             click.echo("❌ Error: Text file is empty", err=True)
             sys.exit(1)
         
-        # Initialize analyzer with sample training data
-        analyzer = PhilosophicalAnalyzer()
-        
-        # Use the input text itself for training (simple approach)
-        # In a real scenario, we'd have a separate training corpus
-        training_texts = {
-            "sample": text_content
-        }
-        
-        if verbose:
-            click.echo("🧠 Training analyzer...")
-        
-        analyzer.fit(training_texts)
-        
-        # Analyze the text
         text_id = author if author else text_path.stem
         
-        if verbose:
-            click.echo(f"📊 Analyzing text as '{text_id}'...")
+        # Choose analyzer based on mode
+        if analysis_mode == 'advanced':
+            try:
+                from .core.integrated_analyzer import IntegratedPhilosophicalAnalyzer
+                
+                if verbose:
+                    click.echo("🧠 Using advanced Phase 1A analyzer...")
+                
+                analyzer = IntegratedPhilosophicalAnalyzer()
+                
+                # For single text analysis, fit on the text itself
+                training_texts = {text_id: text_content}
+                analyzer.fit(training_texts)
+                
+                result = analyzer.analyze_text(text_content, text_id)
+                
+            except ImportError as e:
+                click.echo("⚠️  Advanced analyzer not available, falling back to basic mode")
+                if verbose:
+                    click.echo(f"Import error: {e}")
+                analysis_mode = 'basic'
         
-        result = analyzer.analyze_text(text_content, text_id)
+        # Basic mode (your original analyzer)
+        if analysis_mode == 'basic':
+            if verbose:
+                click.echo("🧠 Using original analyzer...")
+            
+            analyzer = PhilosophicalAnalyzer()
+            training_texts = {text_id: text_content}
+            analyzer.fit(training_texts)
+            result = analyzer.analyze_text(text_content, text_id)
         
         # Display results
-        click.echo("\n📋 Analysis Results:")
-        click.echo("=" * 40)
-        
-        if 'error' in result:
-            click.echo(f"❌ Error: {result['error']}")
-            sys.exit(1)
-        
-        click.echo(f"📖 Text ID: {result['text_id']}")
-        click.echo(f"📝 Sentences: {result['sentence_count']}")
-        click.echo(f"📚 Words: {result['word_count']}")
-        
-        if 'avg_sentence_length' in result:
-            click.echo(f"📏 Avg Sentence Length: {result['avg_sentence_length']}")
-        
-        click.echo(f"\n🧠 Semantic Analysis:")
-        click.echo(f"  Coherence: {result['semantic_coherence']:.3f}")
-        click.echo(f"  Min Coherence: {result['min_coherence']:.3f}")
-        click.echo(f"  Max Coherence: {result['max_coherence']:.3f}")
-        
-        click.echo(f"\n🎯 Classification: {result['classification'].upper()}")
-        
-        if 'analysis_mode' in result:
-            click.echo(f"⚙️  Analysis Mode: {result['analysis_mode']}")
+        display_results(result, analysis_mode, verbose)
         
         # Save output if requested
         if output:
@@ -124,18 +134,87 @@ def analyze(ctx, text, output, author, verbose):
                 json.dump(result, f, indent=2, default=str)
             click.echo(f"\n💾 Results saved to: {output_path}")
         
-        # Return appropriate exit code
         sys.exit(0)
         
-    except FileNotFoundError:
-        click.echo(f"❌ Error: File not found: {text}", err=True)
-        sys.exit(1)
     except Exception as e:
         click.echo(f"❌ Error: {e}", err=True)
         if verbose:
             import traceback
             traceback.print_exc()
         sys.exit(1)
+
+
+def display_results(result: dict, mode: str, verbose: bool = False):
+    """Display analysis results based on mode."""
+    
+    click.echo(f"\n📋 Analysis Results ({mode} mode):")
+    click.echo("=" * 50)
+    
+    if 'error' in result:
+        click.echo(f"❌ Error: {result['error']}")
+        return
+    
+    # Basic metrics (available in both modes)
+    click.echo(f"📖 Text ID: {result['text_id']}")
+    click.echo(f"📝 Sentences: {result['sentence_count']}")
+    
+    if 'word_count' in result:
+        click.echo(f"📚 Words: {result['word_count']}")
+    if 'total_words' in result:
+        click.echo(f"📚 Words: {result['total_words']}")
+    
+    # Coherence metrics
+    click.echo(f"\n🧠 Coherence Analysis:")
+    
+    if 'semantic_coherence' in result:
+        click.echo(f"  Coherence: {result['semantic_coherence']:.3f}")
+        click.echo(f"  Min: {result.get('min_coherence', 'N/A')}")
+        click.echo(f"  Max: {result.get('max_coherence', 'N/A')}")
+    
+    if 'first_order_coherence' in result:
+        click.echo(f"  First-order: {result['first_order_coherence']:.3f}")
+    
+    if 'second_order_coherence' in result:
+        click.echo(f"  Second-order: {result['second_order_coherence']:.3f}")
+    
+    # Advanced metrics (Phase 1A)
+    if mode == 'advanced':
+        click.echo(f"\n🔬 Advanced Metrics (Phase 1A):")
+        
+        if 'target_determiners_freq' in result:
+            click.echo(f"  Determiner frequency: {result['target_determiners_freq']:.4f}")
+            click.echo(f"  Determiner count: {result.get('target_determiners_count', 'N/A')}")
+        
+        if 'max_phrase_length' in result:
+            click.echo(f"  Max phrase length: {result['max_phrase_length']}")
+        
+        if 'avg_sentence_length' in result:
+            click.echo(f"  Avg sentence length: {result['avg_sentence_length']:.2f}")
+        
+        # Classification results
+        if 'predicted_label' in result:
+            click.echo(f"\n🤖 Classification:")
+            click.echo(f"  Prediction: {result['predicted_label'].upper()}")
+            click.echo(f"  Confidence: {result['classification_confidence']:.3f}")
+        
+        # Statistical significance
+        if 'significant' in result:
+            sig_status = "✅ Significant" if result['significant'] else "❌ Not significant"
+            click.echo(f"  Statistical: {sig_status} (p={result.get('p_value', 'N/A'):.3f})")
+        
+        # Interpretations
+        if 'interpretation' in result and verbose:
+            click.echo(f"\n🧠 Interpretations:")
+            interp = result['interpretation']
+            for key, value in interp.items():
+                click.echo(f"  {key.replace('_', ' ').title()}: {value}")
+    
+    # Classification (basic mode)
+    if 'classification' in result:
+        click.echo(f"\n🎯 Classification: {result['classification'].upper()}")
+    
+    if 'analysis_mode' in result:
+        click.echo(f"⚙️  Analysis Mode: {result['analysis_mode']}")
 
 
 @cli.command()
@@ -157,21 +236,34 @@ def analyze(ctx, text, output, author, verbose):
     help='File pattern to match (default: *.txt)'
 )
 @click.option(
+    '--advanced', 
+    is_flag=True,
+    help='Use advanced Phase 1A analysis'
+)
+@click.option(
+    '--cross-validate',
+    is_flag=True,
+    help='Perform cross-validation (requires labels file)'
+)
+@click.option(
+    '--labels-file',
+    type=click.Path(exists=True),
+    help='CSV file with text_id,label columns for supervised analysis'
+)
+@click.option(
     '--verbose', '-v',
     is_flag=True,
-    help='Enable verbose output for this command'
+    help='Enable verbose output'
 )
 @click.pass_context
-def batch(ctx, input_dir, output, pattern, verbose):
+def batch(ctx, input_dir, output, pattern, advanced, cross_validate, labels_file, verbose):
     """Analyze multiple texts in a directory."""
     
-    # Use command-level verbose or global verbose
     verbose = verbose or ctx.obj.get('verbose', False)
+    analysis_mode = 'advanced' if advanced else 'basic'
     
     try:
         input_path = Path(input_dir)
-        
-        # Find text files
         text_files = list(input_path.glob(pattern))
         
         if not text_files:
@@ -179,9 +271,9 @@ def batch(ctx, input_dir, output, pattern, verbose):
             sys.exit(1)
         
         if verbose:
-            click.echo(f"📁 Found {len(text_files)} files to analyze")
+            click.echo(f"📁 Found {len(text_files)} files to analyze (mode: {analysis_mode})")
         
-        # Load all texts
+        # Load texts
         texts = {}
         for file_path in text_files:
             try:
@@ -189,22 +281,51 @@ def batch(ctx, input_dir, output, pattern, verbose):
                     content = f.read().strip()
                     if content:
                         texts[file_path.stem] = content
+                        if verbose:
+                            click.echo(f"📖 Loaded: {file_path.stem} ({len(content):,} chars)")
             except Exception as e:
                 if verbose:
-                    click.echo(f"⚠️  Skipping {file_path}: {e}")
+                    click.echo(f"⚠️  Skipped {file_path.stem}: {e}")
         
         if not texts:
             click.echo("❌ No valid text files found")
             sys.exit(1)
         
+        # Load labels if provided
+        labels = None
+        if labels_file:
+            import pandas as pd
+            try:
+                labels_df = pd.read_csv(labels_file)
+                labels = dict(zip(labels_df['text_id'], labels_df['label']))
+                click.echo(f"📋 Loaded labels for {len(labels)} texts")
+            except Exception as e:
+                click.echo(f"⚠️  Could not load labels: {e}")
+        
         click.echo(f"📊 Analyzing {len(texts)} texts...")
         
-        # Initialize and fit analyzer
-        analyzer = PhilosophicalAnalyzer()
-        analyzer.fit(texts)
+        # Choose analyzer
+        if analysis_mode == 'advanced':
+            try:
+                from .core.integrated_analyzer import IntegratedPhilosophicalAnalyzer
+                analyzer = IntegratedPhilosophicalAnalyzer()
+                analyzer.fit(texts, labels)
+                results = analyzer.analyze_multiple_texts(texts)
+                
+                # Cross-validation if requested
+                if cross_validate and labels:
+                    click.echo("🔄 Performing cross-validation...")
+                    cv_results = analyzer.cross_validate(texts, labels)
+                    click.echo(f"📈 CV Results: Accuracy={cv_results['accuracy']:.3f}, F1={cv_results['f1_score']:.3f}")
+                
+            except ImportError:
+                click.echo("⚠️  Advanced analyzer not available, using basic mode")
+                analysis_mode = 'basic'
         
-        # Analyze all texts
-        results = analyzer.analyze_multiple_texts(texts)
+        if analysis_mode == 'basic':
+            analyzer = PhilosophicalAnalyzer()
+            analyzer.fit(texts)
+            results = analyzer.analyze_multiple_texts(texts)
         
         # Save results
         output_path = Path(output)
@@ -214,13 +335,9 @@ def batch(ctx, input_dir, output, pattern, verbose):
         click.echo(f"💾 Results saved to: {output_path}")
         
         # Show summary
-        if 'error' in results.columns:
-            successful = len(results[results['error'].isna()])
-            failed = len(results) - successful
-        else:
-            # If no error column exists, all analyses were successful
-            successful = len(results)
-            failed = 0
+        successful = len(results) if 'error' not in results.columns else len(results[results['error'].isna()])
+
+        failed = len(results) - successful
         
         click.echo(f"\n📈 Summary:")
         click.echo(f"  Total texts: {len(results)}")
@@ -228,15 +345,11 @@ def batch(ctx, input_dir, output, pattern, verbose):
         if failed > 0:
             click.echo(f"  Failed: {failed}")
         
-        if successful > 0 and 'semantic_coherence' in results.columns:
-            avg_coherence = results['semantic_coherence'].mean()
+        # Show coherence stats
+        coherence_col = 'first_order_coherence' if 'first_order_coherence' in results.columns else 'semantic_coherence'
+        if coherence_col in results.columns:
+            avg_coherence = results[coherence_col].mean()
             click.echo(f"  Avg Coherence: {avg_coherence:.3f}")
-            
-            # Show individual results if verbose
-            if verbose:
-                click.echo(f"\n📊 Individual Results:")
-                for _, row in results.iterrows():
-                    click.echo(f"  {row['text_id']}: {row['semantic_coherence']:.3f} ({row['classification']})")
         
     except Exception as e:
         click.echo(f"❌ Error: {e}", err=True)
@@ -247,22 +360,15 @@ def batch(ctx, input_dir, output, pattern, verbose):
 
 
 @cli.command()
-@click.option(
-    '--verbose', '-v',
-    is_flag=True,
-    help='Enable verbose output for test'
-)
+@click.option('--mode', type=click.Choice(['basic', 'advanced']), default='basic')
+@click.option('--verbose', '-v', is_flag=True, help='Enable verbose output')
 @click.pass_context
-def test(ctx, verbose):
+def test(ctx, mode, verbose):
     """Run a quick test of the analyzer."""
     
-    # Use command-level verbose or global verbose
     verbose = verbose or ctx.obj.get('verbose', False)
     
-    if verbose:
-        click.echo("🧪 Running analyzer test in verbose mode...")
-    else:
-        click.echo("🧪 Running analyzer test...")
+    click.echo(f"🧪 Running analyzer test ({mode} mode)...")
     
     try:
         # Sample texts for testing
@@ -270,7 +376,7 @@ def test(ctx, verbose):
             "coherent": """
             Philosophy is the study of fundamental questions about existence and knowledge.
             These questions have been explored by thinkers throughout history.
-            The systematic approach to these problems defines philosophical inquiry.
+            The systematic approach to these problems defines philosophical methodology.
             """,
             "fragmented": """
             Reality is uncertain. Mathematics proves strange things.
@@ -279,11 +385,23 @@ def test(ctx, verbose):
             """
         }
         
-        # Initialize and test
-        analyzer = PhilosophicalAnalyzer()
-        analyzer.fit(sample_texts)
+        # Choose analyzer
+        if mode == 'advanced':
+            try:
+                from .core.integrated_analyzer import IntegratedPhilosophicalAnalyzer
+                analyzer = IntegratedPhilosophicalAnalyzer()
+                click.echo("✅ Advanced analyzer loaded")
+            except ImportError:
+                click.echo("⚠️  Advanced analyzer not available, using basic")
+                mode = 'basic'
         
-        click.echo("✅ Analyzer initialized and fitted")
+        if mode == 'basic':
+            analyzer = PhilosophicalAnalyzer()
+            click.echo("✅ Basic analyzer loaded")
+        
+        # Fit and test
+        analyzer.fit(sample_texts)
+        click.echo("✅ Analyzer fitted")
         
         # Test analysis
         for text_id, text_content in sample_texts.items():
@@ -293,16 +411,29 @@ def test(ctx, verbose):
             if 'error' in result:
                 click.echo(f"  ❌ Error: {result['error']}")
             else:
-                click.echo(f"  Sentences: {result['sentence_count']}")
-                click.echo(f"  Coherence: {result['semantic_coherence']:.3f}")
-                click.echo(f"  Classification: {result['classification']}")
+                sentences = result['sentence_count']
+                
+                if 'first_order_coherence' in result:
+                    coherence = result['first_order_coherence']
+                else:
+                    coherence = result.get('semantic_coherence', 0)
+                
+                classification = result.get('classification', result.get('predicted_label', 'unknown'))
+                
+                click.echo(f"  Sentences: {sentences}")
+                click.echo(f"  Coherence: {coherence:.3f}")
+                click.echo(f"  Classification: {classification}")
+                
+                if mode == 'advanced' and 'target_determiners_freq' in result:
+                    click.echo(f"  Determiners: {result['target_determiners_freq']:.4f}")
         
-        click.echo("\n🎉 Test completed successfully!")
+        click.echo(f"\n🎉 Test completed successfully! ({mode} mode)")
         
     except Exception as e:
         click.echo(f"❌ Test failed: {e}", err=True)
-        import traceback
-        traceback.print_exc()
+        if verbose:
+            import traceback
+            traceback.print_exc()
         sys.exit(1)
 
 
@@ -314,17 +445,34 @@ def info():
     click.echo(f"Version: {__version__}")
     click.echo("Description: Automated analysis of philosophical texts using psycholinguistic techniques")
     click.echo("")
-    click.echo("🔬 Available Commands:")
+    click.echo("🔬 Available Analysis Modes:")
+    click.echo("  basic    - Original LSA-based coherence analysis")
+    click.echo("  advanced - Phase 1A implementation (POS + Convex Hull + Enhanced Coherence)")
+    click.echo("")
+    click.echo("🚀 Available Commands:")
     click.echo("  analyze  - Analyze a single text file")
     click.echo("  batch    - Analyze multiple text files")
     click.echo("  test     - Run analyzer test")
     click.echo("  info     - Show this information")
     click.echo("")
     click.echo("📚 Usage Examples:")
+    click.echo("  # Basic analysis")
     click.echo("  philo-analyze analyze --text kant_critique.txt --author Kant")
-    click.echo("  philo-analyze batch --input-dir texts/ --output results.csv")
-    click.echo("  philo-analyze test")
+    click.echo("")
+    click.echo("  # Advanced Phase 1A analysis")
+    click.echo("  philo-analyze analyze --text kant_critique.txt --author Kant --advanced")
+    click.echo("")
+    click.echo("  # Batch analysis with cross-validation")
+    click.echo("  philo-analyze batch --input-dir texts/ --output results.csv --advanced --cross-validate --labels-file labels.csv")
 
+
+# Import visualization commands
+try:
+    from .cli_extensions import add_visualization_commands
+    cli = add_visualization_commands(cli)
+except ImportError:
+    # Visualization module not available
+    pass
 
 def main():
     """Entry point for the CLI."""
