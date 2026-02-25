@@ -60,16 +60,15 @@ notebook_requirements = [
 setup(
     name="philosophical-text-analysis",
     version=get_version(),
-    author="Your Name",  # TODO: Change this
-    author_email="your.email@example.com",  # TODO: Change this
+    author="Lucas Palomeque",
+    author_email="lucas.palomeque@example.com",
     description="Automated analysis of philosophical texts using psycholinguistic techniques",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/philosophical-text-analysis",  # TODO: Change this
+    url="https://github.com/lucaspalomeque/phiilosophical-text-analysis",
     project_urls={
-        "Bug Reports": "https://github.com/yourusername/philosophical-text-analysis/issues",
-        "Source": "https://github.com/yourusername/philosophical-text-analysis",
-        "Documentation": "https://philosophical-text-analysis.readthedocs.io/",
+        "Bug Reports": "https://github.com/lucaspalomeque/phiilosophical-text-analysis/issues",
+        "Source": "https://github.com/lucaspalomeque/phiilosophical-text-analysis",
     },
     
     # Package configuration

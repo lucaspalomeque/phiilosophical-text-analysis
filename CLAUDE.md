@@ -120,7 +120,7 @@ When adding or modifying statistical analyses:
 ## Testing
 
 ```bash
-# All tests (85 total)
+# All tests (115 total)
 PYTHONPATH=src python3 -m pytest tests/ -v
 
 # Fast unit tests only

@@ -5,6 +5,8 @@ Provides REST endpoints for uploading texts, running analysis,
 and retrieving visualization data.
 """
 
+import hashlib
+import json
 import logging
 from typing import Dict, Optional
 
@@ -26,7 +28,14 @@ _state: Dict = {
     "texts": {},
     "results": None,
     "viz_data": None,
+    "analysis_hash": None,
 }
+
+
+def _compute_analysis_hash(texts: Dict[str, str], params: dict) -> str:
+    """Compute a deterministic hash of texts + params to detect unchanged inputs."""
+    payload = json.dumps({"texts": texts, "params": params}, sort_keys=True)
+    return hashlib.sha256(payload.encode()).hexdigest()
 
 # ---------------------------------------------------------------------------
 # Request / response models
@@ -62,12 +71,14 @@ async def add_text(payload: TextInput):
     if not payload.name or not payload.content:
         raise HTTPException(400, "Name and content are required")
     _state["texts"][payload.name] = payload.content
+    _state["analysis_hash"] = None  # invalidate cache
     return {"texts": {k: v for k, v in _state["texts"].items()}}
 
 
 @router.delete("/texts/{name}")
 async def remove_text(name: str):
     _state["texts"].pop(name, None)
+    _state["analysis_hash"] = None  # invalidate cache
     return {"texts": {k: v for k, v in _state["texts"].items()}}
 
 
@@ -80,11 +91,13 @@ async def upload_files(files: list[UploadFile] = File(...)):
             _state["texts"][text_name] = content.decode("utf-8")
         except UnicodeDecodeError:
             raise HTTPException(400, f"Could not decode {f.filename} as UTF-8")
+    _state["analysis_hash"] = None  # invalidate cache
     return {"texts": {k: v for k, v in _state["texts"].items()}}
 
 
 @router.post("/samples")
 async def load_samples():
+    _state["analysis_hash"] = None  # invalidate cache
     _state["texts"] = {
         "kant_sample": (
             "The categorical imperative is the central philosophical concept in "
@@ -117,6 +130,20 @@ async def run_analysis(params: AnalysisParams):
     if not _state["texts"]:
         raise HTTPException(400, "No texts loaded. Upload or paste texts first.")
 
+    # Check if inputs are unchanged since last analysis (cache hit)
+    params_dict = {"lsa_components": params.lsa_components, "coherence_window": params.coherence_window}
+    current_hash = _compute_analysis_hash(_state["texts"], params_dict)
+
+    if current_hash == _state.get("analysis_hash") and _state["results"] is not None:
+        logger.info("Analysis cache hit — returning previous results")
+        results = _state["results"]
+        results_dict = results.to_dict(orient="records") if hasattr(results, "to_dict") else results
+        return {
+            "results": results_dict,
+            "viz_data": _serialize_viz(_state["viz_data"]),
+            "cached": True,
+        }
+
     try:
         analyzer = IntegratedPhilosophicalAnalyzer(
             lsa_components=params.lsa_components,
@@ -133,6 +160,7 @@ async def run_analysis(params: AnalysisParams):
             texts=_state["texts"],
         )
         _state["viz_data"] = viz_data
+        _state["analysis_hash"] = current_hash
 
         # Convert DataFrame to JSON-safe dict
         results_dict = results.to_dict(orient="records") if hasattr(results, "to_dict") else results
@@ -140,6 +168,7 @@ async def run_analysis(params: AnalysisParams):
         return {
             "results": results_dict,
             "viz_data": _serialize_viz(viz_data),
+            "cached": False,
         }
     except Exception as e:
         logger.exception("Analysis failed")

@@ -1,104 +1,57 @@
-# Test Coverage Documentation
+# Test Coverage
 
-## Overview
+## Summary: 115 tests
 
-This document provides an overview of the test coverage for the Philosophical Text Analysis project, highlighting what's tested, what's not, and recommendations for further testing.
+| Directory | Files | Tests | Description |
+|-----------|-------|-------|-------------|
+| `tests/core/` | 4 | ~20 | Coherence analyzer, POS analyzer, convex hull, integrated analyzer |
+| `tests/visualization/` | 1 | ~8 | Dashboard data generation, temporal data, JSON output |
+| `tests/web/test_api.py` | 1 | ~33 | All FastAPI endpoints: health, text CRUD, upload, samples, analysis, viz data, SPA routing |
+| `tests/web/test_viz_contract.py` | 1 | ~17 | Frontend/backend data contract: dashboard metrics, temporal arrays, network nodes/links, results format |
+| `tests/test_math_validation.py` | 1 | ~30 | Cosine similarity axioms, coherence ordering, second-order formula, temporal coherence, determiner counting, Cohen's d, t-stat vs scipy, coherence decay, syntactic complexity, LSA sanity, end-to-end consistency |
+| `tests/test_full_pipeline.py` | 1 | ~7 | End-to-end pipeline with edge cases (short texts, repetitive content, number-heavy) |
+| **Total** | **9** | **~115** | |
 
-## Current Test Coverage
-
-### Core Components
-
-| Component | Coverage | Description |
-|-----------|----------|-------------|
-| `enhanced_coherence.py` | Good | Unit tests verify initialization, fitting, analysis pipeline, and error handling |
-| `pos_analyzer.py` | Good | Unit tests cover POS tagging, determiner analysis, and phrase extraction |
-| `convex_hull.py` | Good | Tests for classification functionality and edge cases |
-| `integrated_analyzer.py` | Good | Tests verify component integration, end-to-end analysis, and cross-validation |
-
-### Visualization Components
-
-| Component | Coverage | Description |
-|-----------|----------|-------------|
-| `generator.py` | Good | Tests for dashboard data generation, temporal data creation, JSON output, and error handling |
-| `semantic_network.py` | Basic | Basic test for network generation, could use more comprehensive tests |
-
-### Web API (FastAPI)
-
-| Component | Coverage | Description |
-|-----------|----------|-------------|
-| Health endpoint | Good | Verifies `/api/health` returns 200 |
-| Text management | Good | CRUD for texts: add, get, remove, upload files, load samples |
-| File upload | Good | Single/multiple file upload, extension stripping, UTF-8 validation |
-| Analysis endpoint | Good | Tests empty state error, full pipeline with samples, state persistence |
-| Viz data endpoints | Good | 404 before analysis, correct data after analysis for dashboard/temporal/network/all |
-| SPA routing | Good | Index, catch-all, static/api paths not caught |
-
-### Viz Data Contract Tests
-
-| Contract | Coverage | Description |
-|-----------|----------|-------------|
-| Dashboard | Good | Validates philosopher metrics dict, stats fields, JSON serializability |
-| Temporal | Good | Validates timeline arrays are numeric lists, avg_coherence present |
-| Network | Good | Validates nodes/links structure, source/target on links, metadata |
-| Results | Good | Validates list-of-dicts format, text_id and coherence fields |
-
-### Integration Tests
-
-| Test Type | Coverage | Description |
-|-----------|----------|-------------|
-| Full Pipeline | Good | End-to-end test from text input through analysis to visualization output |
-| Edge Cases | Good | Tests with short texts, repetitive content, and number-heavy content |
-| Web API Pipeline | Good | Samples -> analyze -> viz endpoints, verified via contract tests |
-
-## Test Summary
-
-| Directory | Files | Tests |
-|-----------|-------|-------|
-| `tests/core/` | 4 | ~20 |
-| `tests/visualization/` | 1 | ~8 |
-| `tests/web/` | 2 | ~50 |
-| `tests/` (root) | 2 | ~9 |
-| **Total** | **9** | **~85** |
-
-## Test Gaps and Recommendations
-
-1. **Semantic Network Analysis**: Limited testing of concept extraction and relationship building
-2. **Performance Tests**: No benchmarks for execution time or memory on large text collections
-3. **Configuration Handling**: Limited testing of config file loading and parameter overriding
-
-## Running Tests
+## Running tests
 
 ```bash
-# Run all tests
+# All tests
 PYTHONPATH=src python3 -m pytest tests/ -v
 
-# Run only unit tests (fast)
+# Fast unit tests only (no NLTK downloads, no full pipeline)
 PYTHONPATH=src python3 -m pytest tests/ -v -m "not integration"
 
-# Run only integration tests
+# Integration tests only (full pipeline including NLTK)
 PYTHONPATH=src python3 -m pytest tests/ -v -m "integration"
 
-# Run only web API tests
+# Web API tests only
 PYTHONPATH=src python3 -m pytest tests/web/ -v
 
-# Run only core tests
+# Core analysis tests only
 PYTHONPATH=src python3 -m pytest tests/core/ -v
 
-# Generate HTML coverage report
-PYTHONPATH=src python3 -m pytest --cov=philosophical_analysis --cov-report=html tests/
+# Math validation tests only
+PYTHONPATH=src python3 -m pytest tests/test_math_validation.py -v
+
+# With coverage report
+PYTHONPATH=src python3 -m pytest --cov=src/philosophical_analysis --cov-report=html tests/
 ```
 
-## Test Dependencies
+## Test dependencies
 
-- pytest>=6.2.0
-- pytest-cov>=3.0.0
-- httpx>=0.24.0 (required for FastAPI TestClient)
+- pytest >= 6.2.0
+- pytest-cov >= 3.0.0
+- httpx >= 0.24.0 (required for FastAPI TestClient)
 
-## Continuous Integration
+## Key fixtures (conftest.py)
 
-GitHub Actions CI runs on every push/PR to main:
-- Python 3.9 and 3.11 matrix
-- Linting with flake8
-- Unit tests (fast, no external dependencies)
-- Integration tests (full pipeline including NLTK)
-- Web dependencies installed via `pip install -e ".[dev,web]"`
+- `temp_data_dir` — Session-scoped temporary directory for test data
+- `sample_philosophical_texts` — Kant, Hume, Nietzsche, and incoherent style texts
+- `mock_nltk_data` — Session-scoped fixture that downloads NLTK data to a temp directory; sets `NLTK_DATA` env var and prepends to `nltk.data.path`
+
+## Test gaps
+
+1. No performance benchmarks (execution time, memory on large corpora)
+2. No fuzz testing on text input (unicode edge cases, very long texts)
+3. No concurrent request tests for the web API
+4. Semantic network generation has basic coverage only

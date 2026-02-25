@@ -1,6 +1,5 @@
 /**
  * Philosophical Text Analysis — SPA Router & View Manager
- * Phase 2: Full chart rendering with real data
  */
 
 // ---------------------------------------------------------------------------
@@ -75,9 +74,12 @@ const Router = {
 
 function showToast(message, type = 'info') {
     const toast = document.getElementById('toast');
-    toast.textContent = message;
+    const icon = type === 'success' ? '\u2713' : type === 'error' ? '\u2717' : '\u2139';
+    toast.innerHTML = `<span class="toast-icon">${icon}</span> ${escHtml(message)}`;
     toast.className = `toast ${type} visible`;
-    setTimeout(() => toast.classList.remove('visible'), 3000);
+    const delay = type === 'error' ? 5000 : 3000;
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove('visible'), delay);
 }
 
 function showOverlay(show, status = '') {
@@ -397,8 +399,9 @@ async function runAnalysis() {
 
 async function renderDashboardView(container) {
     if (!AppState.vizData) {
+        container.innerHTML = `<div class="page-header"><h1>Dashboard</h1></div><div class="page-body">${chartSkeleton(400)}</div>`;
         try { AppState.vizData = await API.getAllVizData(); } catch {
-            container.innerHTML = emptyState('Dashboard', 'No analysis results yet', 'Upload texts and run an analysis to see your dashboard.');
+            container.innerHTML = emptyState('Dashboard', 'No analysis results yet', 'Upload texts and run an analysis to see your dashboard.', 'upload');
             return;
         }
     }
@@ -590,7 +593,11 @@ let _temporalMode = 'temporal';
 
 async function renderTemporalView(container) {
     if (!AppState.vizData) {
-        try { AppState.vizData = await API.getAllVizData(); } catch {}
+        container.innerHTML = `<div class="page-header"><h1>Temporal analysis</h1></div><div class="page-body">${chartSkeleton(400)}</div>`;
+        try { AppState.vizData = await API.getAllVizData(); } catch {
+            container.innerHTML = emptyState('Temporal analysis', 'No analysis results yet', 'Upload texts and run an analysis to explore coherence over time.', 'upload');
+            return;
+        }
     }
     const temporal = AppState.vizData?.temporal || {};
     const names = Object.keys(temporal);
@@ -788,11 +795,15 @@ function renderTemporalSingle(name, data, chartEl, statsEl, detailsEl) {
 
 async function renderNetworkView(container) {
     if (!AppState.vizData) {
-        try { AppState.vizData = await API.getAllVizData(); } catch {}
+        container.innerHTML = `<div class="page-header"><h1>Semantic network</h1></div><div class="page-body">${chartSkeleton(500)}</div>`;
+        try { AppState.vizData = await API.getAllVizData(); } catch {
+            container.innerHTML = emptyState('Semantic network', 'No network data', 'Upload texts and run an analysis to generate the semantic network.', 'upload');
+            return;
+        }
     }
     const network = AppState.vizData?.network;
     if (!network || !network.nodes || network.nodes.length === 0) {
-        container.innerHTML = emptyState('Semantic network', 'No network data', 'Run an analysis with texts to generate the semantic network.');
+        container.innerHTML = emptyState('Semantic network', 'No network data', 'Run an analysis with texts to generate the semantic network.', 'upload');
         return;
     }
 
@@ -1046,12 +1057,16 @@ function resetNetworkFilters() {
 
 async function renderCompareView(container) {
     if (!AppState.vizData) {
-        try { AppState.vizData = await API.getAllVizData(); } catch {}
+        container.innerHTML = `<div class="page-header"><h1>Compare</h1></div><div class="page-body">${chartSkeleton(400)}</div>`;
+        try { AppState.vizData = await API.getAllVizData(); } catch {
+            container.innerHTML = emptyState('Compare', 'No data to compare', 'Upload texts and run an analysis to compare philosophers.', 'upload');
+            return;
+        }
     }
     const philosophers = AppState.vizData?.dashboard?.philosophers || {};
     const names = Object.keys(philosophers);
     if (names.length === 0) {
-        container.innerHTML = emptyState('Compare', 'No data to compare', 'Run an analysis first to compare philosophers.');
+        container.innerHTML = emptyState('Compare', 'No data to compare', 'Run an analysis first to compare philosophers.', 'upload');
         return;
     }
 
@@ -1224,7 +1239,9 @@ function switchCompare(mode) {
 // Shared: Empty state template
 // =====================================================================
 
-function emptyState(title, heading, description) {
+function emptyState(title, heading, description, targetView = 'upload') {
+    const labels = { upload: 'Go to upload', dashboard: 'View dashboard', temporal: 'View temporal', network: 'View network', compare: 'View compare' };
+    const btnLabel = labels[targetView] || 'Go to upload';
     return `
         <div class="page-header"><h1>${title}</h1></div>
         <div class="page-body">
@@ -1232,7 +1249,7 @@ function emptyState(title, heading, description) {
                 <div class="empty-state-icon" style="font-size:var(--text-5xl); opacity:0.2;">&#9673;</div>
                 <div class="empty-state-title">${heading}</div>
                 <div class="empty-state-description">${description}</div>
-                <a href="#/upload" class="btn btn-primary" style="margin-top:var(--space-5);">Go to upload</a>
+                <a href="#/${targetView}" class="btn btn-primary" style="margin-top:var(--space-5);">${btnLabel}</a>
             </div>
         </div>`;
 }
